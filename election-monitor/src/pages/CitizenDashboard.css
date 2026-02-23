@@ -1,0 +1,308 @@
+.dashboard-topbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.dashboard-profile {
+  position: relative;
+}
+.dashboard-profile-img {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #2a5298;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.profile-img {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  border: 3px solid #2a5298;
+  transition: 0.3s ease;
+}
+
+.profile-img:hover {
+  transform: scale(1.05);
+}
+.section-box {
+  margin-top: 30px;
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+.citizen-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 130px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 153, 51, 0.6),
+    rgba(19, 136, 8, 0.6)
+  );
+  color: black;
+  padding: 20px;
+}
+
+.sidebar h2 {
+  margin-bottom: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  padding: 10px 0;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.sidebar li:hover {
+  color: #ffd200;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 30px;
+  background: #f4f6f9;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+/* ===== Election Status Section ===== */
+
+.section-title {
+  margin-bottom: 20px;
+  font-size: 22px;
+}
+
+.election-status-box {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.status-card {
+  background: #2a6ecb;
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+  transition: 0.3s ease;
+}
+
+.status-card:hover {
+  transform: translateY(-5px);
+}
+
+.status-card h4 {
+  margin-bottom: 5px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.status-card p {
+  font-size: 13px;
+}
+
+.status-indicator {
+  background: #2a6ecb;
+  color: white;
+  padding: 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.active-dot {
+  width: 10px;
+  height: 10px;
+  background: limegreen;
+  border-radius: 50%;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+  padding: 15px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+/* ================= REPORT ISSUE SECTION ================= */
+
+.report-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.report-card {
+  width: 100%;
+  max-width: 700px;
+  background: linear-gradient(to right, #f5cba7, #f0d9b5, #c8e6c9);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.report-card h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.report-form .form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.report-form input,
+.report-form select,
+.report-form textarea {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background-color: #f1f1f1;
+  outline: none;
+  transition: 0.3s;
+}
+
+.report-form input:focus,
+.report-form select:focus,
+.report-form textarea:focus {
+  background-color: #e3f2fd;
+  box-shadow: 0 0 5px #4caf50;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4caf50;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #388e3c;
+  transform: scale(1.03);
+}
+
+/* Forms */
+.verification-section,
+.report-section {
+  margin-top: 30px;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.verification-form input,
+.report-form input,
+.report-form textarea,
+.report-form select {
+  display: block;
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.verification-form button,
+.report-form button {
+  background: #2a5298;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.verification-form button:hover,
+.report-form button:hover {
+  background: #1e3c72;
+}
+
+@media (max-width: 768px) {
+
+  .citizen-container {
+    flex-direction: column;
+  }
+
+  .menu-toggle {
+    display: inline-block;
+  }
+
+  .sidebar {
+    position: absolute;
+    top: 70px;
+    left: -250px;
+    width: 220px;
+    height: 100%;
+    transition: 0.3s ease;
+    z-index: 1000;
+  }
+
+  .sidebar.active {
+    left: 0;
+  }
+
+  .main-content {
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-profile-img {
+    width: 55px;
+    height: 55px;
+  }
+}

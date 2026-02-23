@@ -1,0 +1,73 @@
+.citizen-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ff9933, #ffffff, #138808);
+  display: flex;
+  justify-content: center;
+  padding: 50px 20px;
+}
+
+.citizen-form-container {
+  width: 1000px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.citizen-form-container h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #1e3a8a;
+}
+
+.citizen-form-container h3 {
+  margin-top: 30px;
+  margin-bottom: 15px;
+   background: linear-gradient(to right, #33f6ff, #088288);
+
+  background-clip: text;              /* Standard */
+  -webkit-background-clip: text;      /* Chrome/Safari */
+
+  -webkit-text-fill-color: transparent;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.grid input,
+.grid select {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.submit-btn {
+  margin-top: 40px;
+  width: 100%;
+  padding: 14px;
+  background: #1e3a8a;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.submit-btn:hover {
+  background: #162d6b;
+  transform: translateY(-3px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
