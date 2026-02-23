@@ -12,7 +12,7 @@ function Login() {
     remember: false,
   });
 
-  // 🔐 If already logged in → redirect automatically
+
   useEffect(() => {
     const existingUser =
       JSON.parse(localStorage.getItem("currentUser")) ||
@@ -36,7 +36,7 @@ function Login() {
 
     const users = JSON.parse(localStorage.getItem("users")) || [];
 
-    // Case-insensitive email comparison
+    
     const validUser = users.find(
       (user) =>
         user.email.toLowerCase() === formData.email.toLowerCase() &&

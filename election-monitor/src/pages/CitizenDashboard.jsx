@@ -203,7 +203,7 @@ function CitizenDashboard() {
         {/* ================= REPORT ISSUE ================= */}
         <div ref={reportRef} className="report-container">
             <div className="report-card">
-              <h2>📢 Report Election Issue</h2>
+              <h2>Report Election Issue</h2>
 
               <form className="report-form">
 
