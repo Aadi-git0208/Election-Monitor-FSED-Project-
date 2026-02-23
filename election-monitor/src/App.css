@@ -180,12 +180,8 @@ body {
   padding: 30px;
   border-radius: 12px;
   width: 300px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
   transition: all 0.3s ease;
-  box-shadow:
-    0 0 15px rgba(255, 153, 51, 0.5),  
-    0 0 25px rgba(19, 136, 8, 0.4),    
-    0 15px 25px #33f6ff; 
+  box-shadow: 0 0 15px #e36161, 0 0 25px rgb(167 3 3 / 17%), 0 15px 25px #080a0a; 
 }
 
 .card:hover {
