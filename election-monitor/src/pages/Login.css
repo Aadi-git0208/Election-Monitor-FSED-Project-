@@ -1,34 +1,48 @@
-.login-container {
+/* ================= BODY BACKGROUND ================= */
+
+body {
+  margin: 0;
   min-height: 100vh;
+  font-family: Arial, sans-serif;
+
+  background: linear-gradient(135deg, #33ffcc, #33ffcc4a, #2a6ecb9c);
+}
+
+/* ================= CENTER WRAPPER ================= */
+
+.login-container {
+  min-height: 80vh; /* so navbar & footer not affected */
   display: flex;
   justify-content: center;
   align-items: center;
-
-  background: linear-gradient(
-    135deg,
-    #ff9933,
-    #ffffff,
-    #138808
-  );
 }
+
+/* ================= GLASS CARD ================= */
 
 .login-card {
   width: 400px;
-  padding: 35px;
+  padding: 40px;
   border-radius: 20px;
 
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* Glass Effect */
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
 
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+
+  color: #162d6b;
 }
+
+/* ================= HEADINGS ================= */
 
 .login-card h2 {
   text-align: center;
   margin-bottom: 20px;
 }
+
+/* ================= LABELS ================= */
 
 .login-card label {
   display: block;
@@ -37,21 +51,29 @@
   font-weight: 500;
 }
 
+/* ================= INPUTS ================= */
+
 .login-card input[type="email"],
-.login-card input[type="password"] {
+.login-card input[type="password"],
+.login-card select {
   width: 100%;
   padding: 10px;
   margin-top: 5px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+
+  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.3);
+
   outline: none;
 }
 
-.login-card input:focus {
+.login-card input:focus,
+.login-card select:focus {
   border: 1px solid #6a5acd;
 }
 
-/* Role Options */
+/* ================= ROLE OPTIONS ================= */
+
 .role-options {
   display: flex;
   flex-wrap: wrap;
@@ -60,7 +82,8 @@
   font-size: 14px;
 }
 
-/* Remember & Forgot */
+/* ================= REMEMBER & FORGOT ================= */
+
 .login-options {
   display: flex;
   justify-content: space-between;
@@ -84,26 +107,31 @@
   text-decoration: underline;
 }
 
-/* Login Button */
+/* ================= LOGIN BUTTON ================= */
+
 .login-btn {
   width: 100%;
   margin-top: 20px;
   padding: 12px;
-  background: #6a5acd;
+
+  background: linear-gradient(135deg, #6a5acd, #4f46e5);
   color: white;
+
   border: none;
   border-radius: 10px;
   cursor: pointer;
+
   font-weight: 600;
   transition: 0.3s ease;
 }
 
 .login-btn:hover {
-  background: #4f46e5;
   transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-/* Signup Link */
+/* ================= SIGNUP LINK ================= */
+
 .signup-link {
   text-align: center;
   margin-top: 15px;

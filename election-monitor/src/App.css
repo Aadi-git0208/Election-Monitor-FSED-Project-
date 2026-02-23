@@ -29,12 +29,13 @@ body {
 .logo {
   font-size: 25px;
   font-weight: bold;
+  color:white;
 }
 .navbar {
   display: flex;
   justify-content: space-between;
   padding: 15px 60px;
-  background:linear-gradient(160deg, rgba(19, 136, 8, 0.6), transparent);
+  background:black;
   align-items: center;
 }
 
@@ -46,7 +47,7 @@ body {
 
 .nav-links a {
   text-decoration: none;
-  color: black;
+  color:#ffffff;
   transition: all 0.3s ease;
   font-weight: bold;
 }
@@ -72,7 +73,7 @@ body {
   transform: scale(1.05);
 }
 .navbar-signup {
-  background: #1e3a8a;
+  background: #000;
 }
 
 .navbar-signup .logo,

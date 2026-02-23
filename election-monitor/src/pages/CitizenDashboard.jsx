@@ -1,24 +1,28 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CitizenDashboard.css";
 
 function CitizenDashboard() {
-  const dashboardRef = useRef(null);
-  const statusRef = useRef(null);
-  const reportRef = useRef(null);
-
-  const [activeSection, setActiveSection] = useState("dashboard");
   const navigate = useNavigate();
-
-  const scrollToSection = (ref) => {
-    if (ref.current) {
-      ref.current.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const [activeSection, setActiveSection] = useState("dashboard");
 
   const currentUser =
     JSON.parse(localStorage.getItem("currentUser")) ||
     JSON.parse(sessionStorage.getItem("currentUser"));
+
+  const [reports, setReports] = useState(
+    JSON.parse(localStorage.getItem("reports")) || []
+  );
+
+  const [discussion, setDiscussion] = useState([]);
+  const [comment, setComment] = useState("");
+
+  const [formData, setFormData] = useState({
+    title: "",
+    type: "",
+    description: "",
+    date: ""
+  });
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
@@ -26,222 +30,234 @@ function CitizenDashboard() {
     navigate("/login");
   };
 
-  return (
-    <div className="citizen-container">
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-      {/* Sidebar */}
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const newReport = {
+      ...formData,
+      userEmail: currentUser?.email,
+      status: "Pending"
+    };
+
+    const updatedReports = [...reports, newReport];
+    setReports(updatedReports);
+    localStorage.setItem("reports", JSON.stringify(updatedReports));
+
+    alert("Report Submitted Successfully!");
+    setFormData({ title: "", type: "", description: "", date: "" });
+    setActiveSection("reports");
+  };
+
+  const handlePostComment = () => {
+    if (!comment.trim()) return;
+    setDiscussion([
+      ...discussion,
+      { user: currentUser?.fullName || "Citizen", text: comment }
+    ]);
+    setComment("");
+  };
+
+  const myReportsCount = reports.filter(
+    (r) => r.userEmail === currentUser?.email
+  ).length;
+
+  return (
+    <div className="citizen-layout">
+      {/* SIDEBAR */}
       <div className="sidebar">
         <h2>Citizen Panel</h2>
-
         <ul>
-          <li
-            onClick={() => {
-              setActiveSection("dashboard");
-              setTimeout(() => scrollToSection(dashboardRef), 100);
-            }}
-          >
-            Dashboard
-          </li>
-
-          <li
-            onClick={() => {
-              setActiveSection("status");
-              setTimeout(() => scrollToSection(statusRef), 100);
-            }}
-          >
-            Election Status
-          </li>
-
-          <li
-            onClick={() => {
-              setActiveSection("report");
-              setTimeout(() => scrollToSection(reportRef), 100);
-            }}
-          >
-            Report Issue
-          </li>
-
-          <li onClick={() => setActiveSection("verification")}>
-            Verification
-          </li>
-
-          <li onClick={() => setActiveSection("reports")}>
-            My Reports
-          </li>
-
-          <li onClick={() => setActiveSection("notifications")}>
-            Notifications
-          </li>
-
-          <li onClick={() => setActiveSection("profile")}>
-            Profile
-          </li>
-
+          <li onClick={() => setActiveSection("dashboard")}>Dashboard</li>
+          <li onClick={() => setActiveSection("status")}>Election Status</li>
+          <li onClick={() => setActiveSection("report")}>Report Issue</li>
+          <li onClick={() => setActiveSection("reports")}>My Reports</li>
+          <li onClick={() => setActiveSection("discussion")}>Discussion</li>
+          <li onClick={() => setActiveSection("notifications")}>Notifications</li>
+          <li onClick={() => setActiveSection("profile")}>Profile</li>
           <li onClick={handleLogout}>Logout</li>
         </ul>
       </div>
 
-      {/* Main Content */}
+      {/* MAIN CONTENT */}
       <div className="main-content">
-
-        <div className="dashboard-topbar">
-          <div className="dashboard-profile">
-            <img
-              src="https://i.pravatar.cc/45"
-              alt="Citizen"
-              className="profile-img"
-            />
-          </div>
+        <div className="topbar">
+          Welcome {currentUser?.fullName || "Citizen"} 👋
         </div>
-
-        <h1>Welcome {currentUser?.fullName || "Citizen"} 👋</h1>
 
         {/* ================= DASHBOARD ================= */}
         {activeSection === "dashboard" && (
-          <div ref={dashboardRef} className="cards">
-            <div className="card">🗳 Election Active</div>
-            <div className="card">📄 Reports Submitted</div>
-            <div className="card">🔔 Notifications</div>
-            <div className="card">🏫 Polling Info</div>
+          <div className="dashboard-wrapper">
+
+            {/* Top Cards */}
+            <div className="cards">
+              <div className="card">🗳 Election Active</div>
+              <div className="card">📄 My Reports: {myReportsCount}</div>
+              <div className="card">📊 Transparency Score: 92%</div>
+              <div className="card">🏫 Polling Booth: Govt School</div>
+            </div>
+
+            {/* Turnout + Quick Actions */}
+            <div className="dashboard-row">
+              <div className="dashboard-box">
+                <h3>Live Voter Turnout</h3>
+                <div className="progress-bar">
+                  <div
+                    className="progress-fill"
+                    style={{ width: "68%" }}
+                  ></div>
+                </div>
+                <p>68% Citizens Voted</p>
+              </div>
+
+              <div className="dashboard-box">
+                <h3>Quick Actions</h3>
+                <button onClick={() => setActiveSection("report")}>
+                  Report Issue
+                </button>
+                <button onClick={() => setActiveSection("status")}>
+                  Check Status
+                </button>
+                <button>Download Voter Slip</button>
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="dashboard-section">
+              <h3>Recent Activity</h3>
+              <ul className="activity-list">
+                <li>🟢 Your report is under review</li>
+                <li>📢 Election date announced</li>
+                <li>🔔 Transparency score updated</li>
+              </ul>
+            </div>
+
+            {/* Countdown */}
+            <div className="countdown-box">
+              <h3>Election Countdown</h3>
+              <h1>15 Days Left</h1>
+              <p>Election Date: 25 April 2026</p>
+            </div>
+          </div>
+        )}
+
+        {/* ================= REPORT SECTION ================= */}
+        {activeSection === "report" && (
+          <div className="section-box">
+            <h2>Report Election Issue</h2>
+            <form className="report-form" onSubmit={handleSubmit}>
+              <input
+                type="text"
+                name="title"
+                placeholder="Issue Title"
+                value={formData.title}
+                onChange={handleChange}
+                required
+              />
+
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select Issue Type</option>
+                <option>EVM Problem</option>
+                <option>Booth Problem</option>
+                <option>Voter List Issue</option>
+                <option>Illegal Activity</option>
+              </select>
+
+              <textarea
+                name="description"
+                rows="4"
+                placeholder="Describe the issue"
+                value={formData.description}
+                onChange={handleChange}
+                required
+              />
+
+              <input
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                required
+              />
+
+              <button type="submit">Submit Issue</button>
+            </form>
           </div>
         )}
 
         {/* ================= MY REPORTS ================= */}
         {activeSection === "reports" && (
           <div className="section-box">
-            <h2>📄 My Reports</h2>
-            <p>You have submitted 3 reports.</p>
+            <h2>My Reports</h2>
+
+            {myReportsCount === 0 ? (
+              <p>No reports submitted yet.</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reports
+                    .filter((r) => r.userEmail === currentUser?.email)
+                    .map((report, index) => (
+                      <tr key={index}>
+                        <td>{report.title}</td>
+                        <td>{report.type}</td>
+                        <td>{report.date}</td>
+                        <td>{report.status}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
 
-        {/* ================= NOTIFICATIONS ================= */}
-        {activeSection === "notifications" && (
+        {/* ================= DISCUSSION ================= */}
+        {activeSection === "discussion" && (
           <div className="section-box">
-            <h2>🔔 Notifications</h2>
-            <p>No new notifications.</p>
+            <h2>Community Discussion</h2>
+
+            <div className="discussion-box">
+              <input
+                type="text"
+                placeholder="Write a comment..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+              <button onClick={handlePostComment}>Post</button>
+            </div>
+
+            {discussion.map((d, i) => (
+              <div key={i} className="comment-item">
+                <strong>{d.user}:</strong> {d.text}
+              </div>
+            ))}
           </div>
         )}
 
         {/* ================= PROFILE ================= */}
         {activeSection === "profile" && (
           <div className="section-box">
-            <h2>👤 Profile</h2>
+            <h2>My Profile</h2>
             <p><strong>Name:</strong> {currentUser?.fullName}</p>
             <p><strong>Email:</strong> {currentUser?.email}</p>
-            <p><strong>Role:</strong> {currentUser?.role}</p>
           </div>
         )}
-
-        {/* ================= VERIFICATION ================= */}
-        {activeSection === "verification" && (
-          <div className="section-box">
-            <h2>🆔 Identity Verification</h2>
-            <button onClick={() => navigate("/citizen-form")}>
-              Fill Verification Form
-            </button>
-          </div>
-        )}
-
-        {/* ================= ELECTION STATUS (UNCHANGED) ================= */}
-        {activeSection === "status" && (
-          <div ref={statusRef} className="section">
-            <h2 className="section-title">Election Status</h2>
-
-            {(() => {
-              const allCitizens =
-                JSON.parse(localStorage.getItem("citizens")) || [];
-
-              const verificationData = allCitizens.find(
-                (citizen) => citizen.userEmail === currentUser?.email
-              );
-
-              if (!verificationData) {
-                return <p>Please complete identity verification first.</p>;
-              }
-
-              if (verificationData.status !== "Approved") {
-                return (
-                  <div className="status-pending">
-                    🟡 Verification Pending Approval
-                  </div>
-                );
-              }
-
-              return (
-                <div className="election-status-box">
-
-                  <div className="status-card">
-                    <h4>Election Name</h4>
-                    <p>Lok Sabha Election 2026</p>
-                  </div>
-
-                  <div className="status-card">
-                    <h4>Constituency</h4>
-                    <p>{verificationData.constituency}</p>
-                  </div>
-
-                  <div className="status-card">
-                    <h4>Election Date</h4>
-                    <p>25 April 2026</p>
-                  </div>
-
-                  <div className="status-card">
-                    <h4>Booth Location</h4>
-                    <p>{verificationData.booth}</p>
-                  </div>
-
-                  <div className="status-indicator">
-                    <span className="active-dot"></span> Active
-                  </div>
-
-                </div>
-              );
-            })()}
-          </div>
-        )}
-
-        {/* ================= REPORT ISSUE ================= */}
-        <div ref={reportRef} className="report-container">
-            <div className="report-card">
-              <h2>Report Election Issue</h2>
-
-              <form className="report-form">
-
-                <div className="form-group">
-                  <label>Issue Title</label>
-                  <input type="text" placeholder="Enter your issue" />
-                </div>
-
-                <div className="form-group">
-                  <label>Issue Type</label>
-                  <select>
-                    <option>Select Issue Type</option>
-                    <option>EVM Problem</option>
-                    <option>Booth Problem</option>
-                    <option>Voter List Issue</option>
-                    <option>Illegal Activity</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Issue Description</label>
-                  <textarea rows="4" placeholder="Describe the issue in detail"></textarea>
-                </div>
-
-                <div className="form-group">
-                  <label>Date of Issue</label>
-                  <input type="date" />
-                </div>
-
-                <button type="submit" className="submit-btn">
-                  Submit Issue
-                </button>
-
-              </form>
-            </div>
-          </div>
-        
 
       </div>
     </div>
