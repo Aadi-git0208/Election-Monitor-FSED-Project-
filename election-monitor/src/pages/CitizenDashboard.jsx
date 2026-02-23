@@ -24,10 +24,17 @@ function CitizenDashboard() {
     date: ""
   });
 
+  /* ================= FUNCTIONS ================= */
+
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     sessionStorage.removeItem("currentUser");
     navigate("/login");
+  };
+
+  // ✅ NEW: Open Application Form
+  const openApplicationForm = () => {
+    navigate("/citizen-form");
   };
 
   const handleChange = (e) => {
@@ -54,10 +61,12 @@ function CitizenDashboard() {
 
   const handlePostComment = () => {
     if (!comment.trim()) return;
+
     setDiscussion([
       ...discussion,
       { user: currentUser?.fullName || "Citizen", text: comment }
     ]);
+
     setComment("");
   };
 
@@ -65,8 +74,11 @@ function CitizenDashboard() {
     (r) => r.userEmail === currentUser?.email
   ).length;
 
+  /* ================= UI ================= */
+
   return (
     <div className="citizen-layout">
+
       {/* SIDEBAR */}
       <div className="sidebar">
         <h2>Citizen Panel</h2>
@@ -78,12 +90,17 @@ function CitizenDashboard() {
           <li onClick={() => setActiveSection("discussion")}>Discussion</li>
           <li onClick={() => setActiveSection("notifications")}>Notifications</li>
           <li onClick={() => setActiveSection("profile")}>Profile</li>
+
+          {/* ✅ ONLY NEW ADDITION */}
+          <li onClick={openApplicationForm}>Application Form</li>
+
           <li onClick={handleLogout}>Logout</li>
         </ul>
       </div>
 
       {/* MAIN CONTENT */}
       <div className="main-content">
+
         <div className="topbar">
           Welcome {currentUser?.fullName || "Citizen"} 👋
         </div>
@@ -92,7 +109,6 @@ function CitizenDashboard() {
         {activeSection === "dashboard" && (
           <div className="dashboard-wrapper">
 
-            {/* Top Cards */}
             <div className="cards">
               <div className="card">🗳 Election Active</div>
               <div className="card">📄 My Reports: {myReportsCount}</div>
@@ -100,7 +116,6 @@ function CitizenDashboard() {
               <div className="card">🏫 Polling Booth: Govt School</div>
             </div>
 
-            {/* Turnout + Quick Actions */}
             <div className="dashboard-row">
               <div className="dashboard-box">
                 <h3>Live Voter Turnout</h3>
@@ -121,11 +136,14 @@ function CitizenDashboard() {
                 <button onClick={() => setActiveSection("status")}>
                   Check Status
                 </button>
-                <button>Download Voter Slip</button>
+
+                {/* ✅ Also added here (optional but useful) */}
+                <button onClick={openApplicationForm}>
+                  Open Application Form
+                </button>
               </div>
             </div>
 
-            {/* Recent Activity */}
             <div className="dashboard-section">
               <h3>Recent Activity</h3>
               <ul className="activity-list">
@@ -135,16 +153,16 @@ function CitizenDashboard() {
               </ul>
             </div>
 
-            {/* Countdown */}
             <div className="countdown-box">
               <h3>Election Countdown</h3>
               <h1>15 Days Left</h1>
               <p>Election Date: 25 April 2026</p>
             </div>
+
           </div>
         )}
 
-        {/* ================= REPORT SECTION ================= */}
+        {/* ================= REPORT ISSUE ================= */}
         {activeSection === "report" && (
           <div className="section-box">
             <h2>Report Election Issue</h2>
@@ -190,63 +208,6 @@ function CitizenDashboard() {
 
               <button type="submit">Submit Issue</button>
             </form>
-          </div>
-        )}
-
-        {/* ================= MY REPORTS ================= */}
-        {activeSection === "reports" && (
-          <div className="section-box">
-            <h2>My Reports</h2>
-
-            {myReportsCount === 0 ? (
-              <p>No reports submitted yet.</p>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Title</th>
-                    <th>Type</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reports
-                    .filter((r) => r.userEmail === currentUser?.email)
-                    .map((report, index) => (
-                      <tr key={index}>
-                        <td>{report.title}</td>
-                        <td>{report.type}</td>
-                        <td>{report.date}</td>
-                        <td>{report.status}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
-
-        {/* ================= DISCUSSION ================= */}
-        {activeSection === "discussion" && (
-          <div className="section-box">
-            <h2>Community Discussion</h2>
-
-            <div className="discussion-box">
-              <input
-                type="text"
-                placeholder="Write a comment..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-              />
-              <button onClick={handlePostComment}>Post</button>
-            </div>
-
-            {discussion.map((d, i) => (
-              <div key={i} className="comment-item">
-                <strong>{d.user}:</strong> {d.text}
-              </div>
-            ))}
           </div>
         )}
 

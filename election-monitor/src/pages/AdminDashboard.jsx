@@ -1,155 +1,138 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import "./AdminDashboard.css";
 
 function AdminDashboard() {
-  const navigate = useNavigate();
-  const [showMenu, setShowMenu] = useState(false);
+
+  /* ================== GET USER ================== */
 
   const currentUser =
     JSON.parse(localStorage.getItem("currentUser")) ||
     JSON.parse(sessionStorage.getItem("currentUser"));
 
-  const handleLogout = () => {
-    localStorage.removeItem("currentUser");
-    sessionStorage.removeItem("currentUser");
-    navigate("/login");
+  /* ================== STATES (ALWAYS FIRST) ================== */
+
+  const [electionStatus, setElectionStatus] = useState(() => {
+    const saved = localStorage.getItem("electionStatus");
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  const [transparencyScore, setTransparencyScore] = useState(() => {
+    return localStorage.getItem("transparencyScore") || "";
+  });
+
+  const [boothName, setBoothName] = useState("");
+
+  const [booths, setBooths] = useState(() => {
+    return JSON.parse(localStorage.getItem("booths")) || [];
+  });
+
+  const [users] = useState(() => {
+    return JSON.parse(localStorage.getItem("users")) || [];
+  });
+
+  /* ================== ROUTE PROTECTION (AFTER HOOKS) ================== */
+
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (currentUser.role !== "admin") {
+    return <Navigate to={`/${currentUser.role}-dashboard`} replace />;
+  }
+
+  /* ================== FUNCTIONS ================== */
+
+  const toggleElection = () => {
+    const newStatus = !electionStatus;
+    setElectionStatus(newStatus);
+    localStorage.setItem("electionStatus", JSON.stringify(newStatus));
   };
 
-  // 🔥 Load citizens into state (important for live updates)
-  const [citizens, setCitizens] = useState(
-    JSON.parse(localStorage.getItem("citizens")) || []
-  );
+  const addBooth = () => {
+    if (!boothName.trim()) {
+      alert("Please enter booth name");
+      return;
+    }
 
-  // 🔥 Stats
-  const total = citizens.length;
-  const approved = citizens.filter(c => c.status === "Approved").length;
-  const pending = citizens.filter(c => c.status === "Pending").length;
-
-  // 🔥 Action Handlers
-  const handleApprove = (index) => {
-    const updated = [...citizens];
-    updated[index].status = "Approved";
-    setCitizens(updated);
-    localStorage.setItem("citizens", JSON.stringify(updated));
+    const updatedBooths = [...booths, boothName];
+    setBooths(updatedBooths);
+    localStorage.setItem("booths", JSON.stringify(updatedBooths));
+    setBoothName("");
   };
 
-  const handleReject = (index) => {
-    const updated = [...citizens];
-    updated[index].status = "Rejected";
-    setCitizens(updated);
-    localStorage.setItem("citizens", JSON.stringify(updated));
+  const updateTransparency = () => {
+    if (!transparencyScore) {
+      alert("Please enter transparency score");
+      return;
+    }
+
+    localStorage.setItem("transparencyScore", transparencyScore);
   };
 
-  const handleDelete = (index) => {
-    const updated = [...citizens];
-    updated.splice(index, 1);
-    setCitizens(updated);
-    localStorage.setItem("citizens", JSON.stringify(updated));
-  };
+  /* ================== UI ================== */
 
   return (
     <div className="admin-container">
+      <h1>Welcome {currentUser.name} 👋</h1>
 
-      {/* 🔹 Profile Top Right */}
-      <div className="admin-topbar">
-        <div className="admin-profile">
-          <img
-            src={currentUser?.profileImage || "https://i.pravatar.cc/100?img=5"}
-            alt="Admin"
-            className="admin-profile-img"
-            onClick={() => setShowMenu(!showMenu)}
-          />
+      <div className="admin-section">
+        <h3>Election Status</h3>
+        <p>
+          Current Status:{" "}
+          {electionStatus ? "Active 🟢" : "Inactive 🔴"}
+        </p>
+        <button onClick={toggleElection}>
+          {electionStatus ? "Deactivate" : "Activate"} Election
+        </button>
+      </div>
 
-          {showMenu && (
-            <div className="admin-dropdown">
-              <p><strong>{currentUser?.fullName}</strong></p>
-              <p>{currentUser?.email}</p>
-              <button onClick={handleLogout}>Logout</button>
-            </div>
-          )}
+      <div className="admin-section">
+        <h3>Transparency Score</h3>
+        <input
+          type="number"
+          value={transparencyScore}
+          onChange={(e) => setTransparencyScore(e.target.value)}
+          placeholder="Enter Score"
+        />
+        <button onClick={updateTransparency}>
+          Update Score
+        </button>
+      </div>
+
+      <div className="admin-section">
+        <h3>Add Polling Booth</h3>
+        <input
+          type="text"
+          value={boothName}
+          onChange={(e) => setBoothName(e.target.value)}
+          placeholder="Enter Booth Name"
+        />
+        <button onClick={addBooth}>Add Booth</button>
+
+        <div className="booth-list">
+          {booths.map((booth, index) => (
+            <p key={index}>• {booth}</p>
+          ))}
         </div>
       </div>
 
-      <h1>Admin Dashboard 👨‍💼</h1>
+      <div className="admin-section">
+        <h3>Registered Users</h3>
 
-      {/* 🔥 Stats Cards */}
-      <div className="admin-stats">
-        <div className="stat-card">Total Requests: {total}</div>
-        <div className="stat-card approved">Approved: {approved}</div>
-        <div className="stat-card pending">Pending: {pending}</div>
+        {users.length === 0 ? (
+          <p>No users registered yet.</p>
+        ) : (
+          users.map((user, index) => (
+            <div key={index} className="user-card">
+              <p><strong>Name:</strong> {user.name}</p>
+              <p><strong>Email:</strong> {user.email}</p>
+              <p><strong>Role:</strong> {user.role}</p>
+              <p><strong>Booth:</strong> {user.booth || "Not Assigned"}</p>
+            </div>
+          ))
+        )}
       </div>
-
-      {/* 🔥 Requests Table */}
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Constituency</th>
-            <th>Booth</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {citizens.length === 0 ? (
-            <tr>
-              <td colSpan="6">No verification requests found.</td>
-            </tr>
-          ) : (
-            citizens.map((citizen, index) => (
-              <tr key={index}>
-                <td>{citizen.fullName}</td>
-                <td>{citizen.userEmail}</td>
-                <td>{citizen.constituency}</td>
-                <td>{citizen.booth}</td>
-
-                <td>
-                  <span
-                    className={
-                      citizen.status === "Approved"
-                        ? "status-approved"
-                        : citizen.status === "Pending"
-                        ? "status-pending"
-                        : "status-rejected"
-                    }
-                  >
-                    {citizen.status}
-                  </span>
-                </td>
-
-                <td>
-                  <button
-                    className="approve-btn"
-                    onClick={() => handleApprove(index)}
-                    disabled={citizen.status === "Approved"}
-                  >
-                    Approve
-                  </button>
-
-                  <button
-                    className="reject-btn"
-                    onClick={() => handleReject(index)}
-                    disabled={citizen.status === "Rejected"}
-                  >
-                    Reject
-                  </button>
-
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDelete(index)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-
     </div>
   );
 }
