@@ -15,6 +15,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  background: linear-gradient(135deg, #33ffcc, #33ffcc4a, #2a6ecb9c);
 }
 
 /* ================= GLASS CARD ================= */
