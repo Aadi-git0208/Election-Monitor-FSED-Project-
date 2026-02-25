@@ -1,218 +1,187 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "./CitizenDashboard.css";
+import LiveElectionTracker from "./LiveElectionTracker";
 
 function CitizenDashboard() {
-  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("dashboard");
+   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const currentUser =
     JSON.parse(localStorage.getItem("currentUser")) ||
-    JSON.parse(sessionStorage.getItem("currentUser"));
+    JSON.parse(sessionStorage.getItem("currentUser")) ||
+    {};
 
-  const [reports, setReports] = useState(
-    JSON.parse(localStorage.getItem("reports")) || []
-  );
-
-  const [discussion, setDiscussion] = useState([]);
-  const [comment, setComment] = useState("");
-
-  const [formData, setFormData] = useState({
-    title: "",
-    type: "",
-    description: "",
-    date: ""
-  });
-
-  /* ================= FUNCTIONS ================= */
+  const reports =
+    JSON.parse(localStorage.getItem("citizenReports")) || [];
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     sessionStorage.removeItem("currentUser");
-    navigate("/login");
+    window.location.href = "/";
   };
-
-  const openApplicationForm = () => {
-    navigate("/citizen-form");
-  };
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const newReport = {
-      ...formData,
-      userEmail: currentUser?.email,
-      status: "Pending"
-    };
-
-    const updatedReports = [...reports, newReport];
-    setReports(updatedReports);
-    localStorage.setItem("reports", JSON.stringify(updatedReports));
-
-    alert("Report Submitted Successfully!");
-    setFormData({ title: "", type: "", description: "", date: "" });
-    setActiveSection("reports");
-  };
-
-  // ✅ FIXED FUNCTION
-  const handleCommentSubmit = () => {
-    if (!comment.trim()) return;
-
-    setDiscussion([
-      ...discussion,
-      { user: currentUser?.fullName || "Citizen", text: comment }
-    ]);
-
-    setComment("");
-  };
-
-  const myReports = reports.filter(
-    (r) => r.userEmail === currentUser?.email
-  );
-
-  const myReportsCount = myReports.length;
-
-  /* ================= UI ================= */
 
   return (
-    <div className="citizen-layout">
+    <div className="citizen-wrapper">
 
-      {/* SIDEBAR */}
-      <div className="sidebar">
-        <h2>Citizen Panel</h2>
-        <ul>
-          <li onClick={() => setActiveSection("dashboard")}>Dashboard</li>
-          <li onClick={() => setActiveSection("status")}>Election Status</li>
-          <li onClick={() => setActiveSection("report")}>Report Issue</li>
-          <li onClick={() => setActiveSection("reports")}>My Reports</li>
-          <li onClick={() => setActiveSection("discussion")}>Discussion</li>
-          <li onClick={() => setActiveSection("notifications")}>Notifications</li>
-          <li onClick={() => setActiveSection("profile")}>Profile</li>
-          <li onClick={openApplicationForm}>Application Form</li>
-          <li onClick={handleLogout}>Logout</li>
-        </ul>
-      </div>
-
-      {/* MAIN */}
-      <div className="main-content">
-        <div className="topbar">
-          Welcome {currentUser?.fullName || "Citizen"} 👋
+      {/* ================= NAVBAR ================= */}
+      <div className="citizen-navbar">
+        <button
+          className="citizenmenu-btn"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        >
+          ☰
+        </button>
+        <div className="nav-left">
+          <h2>VOTEGUARD</h2>
         </div>
 
-        {/* DASHBOARD */}
-        {activeSection === "dashboard" && (
-          <div className="dashboard-wrapper">
-            <div className="cards">
-              <div className="card">🗳 Election Active</div>
-              <div className="card">📄 My Reports: {myReportsCount}</div>
-              <div className="card">📊 Transparency Score: 92%</div>
-              <div className="card">🏫 Polling Booth: Govt School</div>
-            </div>
-          </div>
-        )}
+       <div className="user-section">
+  <img
+    src={
+      currentUser?.profileImage ||
+      currentUser?.profilePic ||
+      currentUser?.image ||
+      "/default-profile.png"
+    }
+    alt="profile"
+    className="profile-pic"
+  />
 
-        {/* REPORT ISSUE */}
-        {activeSection === "report" && (
-          <div className="section-box">
-            <h2>Report Election Issue</h2>
-            <form className="report-form" onSubmit={handleSubmit}>
-              <input
-                type="text"
-                name="title"
-                placeholder="Issue Title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-              />
+  <span className="admin-name">
+    {currentUser?.fullName || currentUser?.name || "Admin"}
+  </span>
 
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select Issue Type</option>
-                <option>EVM Problem</option>
-                <option>Booth Problem</option>
-                <option>Voter List Issue</option>
-                <option>Illegal Activity</option>
-              </select>
+  <button
+  className="logout-btn"
+  onClick={handleLogout}
+>
+  Logout
+</button>
+</div>
+      </div>
 
-              <textarea
-                name="description"
-                rows="4"
-                placeholder="Describe the issue"
-                value={formData.description}
-                onChange={handleChange}
-                required
-              />
+      {/* ================= SIDEBAR ================= */}
+      <div className="citizen-layout">
+        <div className={`citizen-sidebar ${sidebarOpen ? "open" : "closed"}`}>
+          <p
+            className={activeSection === "dashboard" ? "active-link" : ""}
+            onClick={() => setActiveSection("dashboard")}
+          >
+            Dashboard Overview
+          </p>
 
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                required
-              />
+          <p
+            className={activeSection === "elections" ? "active-link" : ""}
+            onClick={() => setActiveSection("elections")}
+          >
+            Live Election Tracker
+          </p>
 
-              <button type="submit">Submit Issue</button>
-            </form>
-          </div>
-        )}
+          <p
+            className={activeSection === "report" ? "active-link" : ""}
+            onClick={() => setActiveSection("report")}
+          >
+            Report an Issue
+          </p>
 
-        {/* MY REPORTS */}
-        {activeSection === "reports" && (
-          <div className="section-box">
-            <h2>My Reports</h2>
-            {myReports.length === 0 ? (
-              <p>No reports submitted yet.</p>
-            ) : (
-              myReports.map((report, index) => (
-                <div key={index} className="report-card">
-                  <h3>{report.title}</h3>
-                  <p><strong>Type:</strong> {report.type}</p>
-                  <p><strong>Status:</strong> {report.status}</p>
-                  <p><strong>Date:</strong> {report.date}</p>
+          <p
+            className={activeSection === "myreports" ? "active-link" : ""}
+            onClick={() => setActiveSection("myreports")}
+          >
+            My Reports
+          </p>
+
+          <p
+            className={activeSection === "forum" ? "active-link" : ""}
+            onClick={() => setActiveSection("forum")}
+          >
+            Civic Discussion Forum
+          </p>
+
+          <p
+            className={activeSection === "notifications" ? "active-link" : ""}
+            onClick={() => setActiveSection("notifications")}
+          >
+            Notifications
+          </p>
+
+          <p
+            className={activeSection === "profile" ? "active-link" : ""}
+            onClick={() => setActiveSection("profile")}
+          >
+            Profile Settings
+          </p>
+        </div>
+
+        {/* ================= MAIN CONTENT ================= */}
+        <div className="citizen-content">
+
+          {activeSection === "dashboard" && (
+            <>
+              <div className="welcome-card">
+                <div className="profile-section">
+                  <img
+    src={
+      currentUser?.profileImage ||
+      currentUser?.profilePic ||
+      currentUser?.image ||
+      "/default-profile.png"
+    }
+    alt="profile"
+    className="profile-pic"
+  />
+                  <div>
+                    <h2>
+                      Welcome,   {currentUser?.fullName || currentUser?.name || "Citizen"}
+                    </h2>
+                    <p>
+                      <strong>Voter ID:</strong>{" "}
+                      {currentUser.voterId || "VOT123456"}
+                    </p>
+                  </div>
                 </div>
-              ))
-            )}
-          </div>
-        )}
 
-        {/* DISCUSSION */}
-        {activeSection === "discussion" && (
-          <div className="section-box">
-            <h2>Public Discussion</h2>
+                <div className="stats">
+                  <div className="stat-box">
+                    <h3>1</h3>
+                    <p>Active Elections</p>
+                  </div>
 
-            <div className="discussion-list">
-              {discussion.map((d, i) => (
-                <p key={i}><strong>{d.user}:</strong> {d.text}</p>
-              ))}
-            </div>
+                  <div className="stat-box">
+                    <h3>{reports.length}</h3>
+                    <p>Total Reports Submitted</p>
+                  </div>
+                </div>
+              </div>
 
-            <input
-              type="text"
-              placeholder="Write a comment..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-            <button onClick={handleCommentSubmit}>Post</button>
-          </div>
-        )}
+              <div className="info-grid">
+                <div className="info-card">
+                  <h3>🗳 Live Election</h3>
+                  <p>City Council Election 2026</p>
+                  <p>
+                    Status: <span className="active-status">Ongoing</span>
+                  </p>
+                </div>
 
-        {/* PROFILE */}
-        {activeSection === "profile" && (
-          <div className="section-box">
-            <h2>My Profile</h2>
-            <p><strong>Name:</strong> {currentUser?.fullName}</p>
-            <p><strong>Email:</strong> {currentUser?.email}</p>
-          </div>
-        )}
+                <div className="info-card">
+                  <h3>📝 Recent Report</h3>
+                  <p>
+                    {reports.length > 0
+                      ? reports[reports.length - 1].title
+                      : "No reports submitted yet"}
+                  </p>
+                </div>
 
+                <div className="info-card">
+                  <h3>🔔 Notifications</h3>
+                  <p>You have 2 new updates</p>
+                </div>
+              </div>
+            </>
+          )}
+           {activeSection === "livelections" && <LiveElectionTracker />}
+
+        </div>
       </div>
     </div>
   );

@@ -1,307 +1,174 @@
-/* ================= GLOBAL ================= */
-body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: #f4f6f9;
+.citizen-wrapper {
+  font-family: Arial, sans-serif;
 }
 
-/* ================= LAYOUT ================= */
-.citizen-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* ================= SIDEBAR ================= */
-.sidebar {
-  width: 250px;
-  background: linear-gradient(180deg, #1e3c72, #2a5298);
+.citizen-navbar {
+  height: 70px;
+  background: black;
   color: white;
-  padding: 30px 20px;
-  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
-}
-
-.sidebar h2 {
-  margin-bottom: 35px;
-  font-size: 22px;
-  text-align: center;
-  letter-spacing: 1px;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar li {
-  padding: 12px 15px;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  margin-bottom: 10px;
-  font-size: 15px;
-}
-
-.sidebar li:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateX(6px);
-}
-
-/* ================= MAIN ================= */
-.main-content {
-  flex: 1;
-  padding: 35px;
-  background: linear-gradient(135deg, #33ffcc, #33ffcc4a, #2a6ecb9c);
-}
-
-/* ================= TOPBAR ================= */
-.topbar {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 30px;
-}
-
-/* ================= DASHBOARD WRAPPER ================= */
-.dashboard-wrapper {
   display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-/* ================= DASHBOARD CARDS ================= */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 80px;
-}
-
-.card {
-  background: white;
-  padding: 22px;
-  border-radius: 14px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-}
-
-/* ================= SECOND ROW ================= */
-.dashboard-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
-}
-
-.dashboard-box {
-  background: white;
-  padding: 25px;
-  border-radius: 14px;
-   box-shadow: 0 0 15px #e36161, 0 0 25px rgb(167 3 3 / 17%), 0 15px 25px #080a0a;
-}
-
-/* ================= PROGRESS BAR ================= */
-.progress-bar {
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  position: fixed;
   width: 100%;
-  height: 12px;
-  background: #e0e0e0;
-  border-radius: 10px;
-  margin: 15px 0;
+  top: 0;
+  z-index: 1100;
 }
 
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #1e3c72, #2a5298);
-  border-radius: 10px;
-  transition: width 0.5s ease;
-}
-
-/* ================= DASHBOARD BUTTONS ================= */
-.dashboard-box button {
-  display: block;
-  width: 100%;
-  margin-top: 12px;
-  padding: 10px;
+.citizenmenu-btn {
+  font-size: 24px;
+  background: none;
   border: none;
-  border-radius: 8px;
-  background: linear-gradient(90deg, #1e3c72, #2a5298);
   color: white;
   cursor: pointer;
-  font-weight: 500;
-  transition: 0.3s ease;
 }
 
-.dashboard-box button:hover {
-  transform: scale(1.04);
-}
-
-/* ================= RECENT ACTIVITY ================= */
-.dashboard-section {
-  background: white;
-  padding: 25px;
-  border-radius: 14px;
-  box-shadow: 0 0 15px #e36161, 0 0 25px rgb(167 3 3 / 17%), 0 15px 25px #080a0a;
-}
-
-.activity-list {
-  list-style: none;
-  padding: 0;
-  margin-top: 15px;
-}
-
-.activity-list li {
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-  font-size: 15px;
-}
-
-/* ================= COUNTDOWN ================= */
-.countdown-box {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  color: white;
-  padding: 35px;
-  border-radius: 14px;
-  text-align: center;
-  box-shadow: 0 0 15px #e36161, 0 0 25px rgb(167 3 3 / 17%), 0 15px 25px #080a0a;
-}
-
-.countdown-box h1 {
-  font-size: 42px;
-  margin: 10px 0;
-}
-
-/* ================= SECTION BOX ================= */
-.section-box {
-  background: white;
-  padding: 30px;
-  border-radius: 14px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-}
-
-/* ================= STATUS GRID ================= */
-.status-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 20px;
-}
-
-.status-card {
-  background: linear-gradient(135deg, #2a5298, #1e3c72);
-  color: white;
-  padding: 18px;
-  border-radius: 12px;
-  text-align: center;
-}
-
-.status-card h4 {
-  margin-bottom: 8px;
-}
-
-.active {
-  color: #00ff88;
-  font-weight: bold;
-}
-
-/* ================= REPORT FORM ================= */
-.report-form {
+.user-section {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 15px;
 }
 
-.report-form input,
-.report-form select,
-.report-form textarea {
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  transition: 0.3s;
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
 }
 
-.report-form input:focus,
-.report-form select:focus,
-.report-form textarea:focus {
-  border-color: #2a5298;
-  outline: none;
-}
-
-/* ================= TABLE ================= */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-table th {
-  background: #2a5298;
-  color: white;
-  padding: 12px;
-}
-
-table td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-  text-align: center;
-}
-
-table tr:hover {
-  background: #f1f1f1;
-}
-
-/* ================= DISCUSSION ================= */
-.discussion-box {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.discussion-box input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.discussion-box button {
-  padding: 10px 15px;
+.logout-btn {
+  background: #ff4d4d;
   border: none;
-  background: #2a5298;
+  padding: 6px 12px;
   color: white;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
-.comment-item {
-  background: #f4f6f9;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 8px;
+.citizen-layout {
+  display: flex;
+  margin-top: 70px;
 }
 
-/* ================= RESPONSIVE ================= */
-@media (max-width: 900px) {
-  .citizen-layout {
-    flex-direction: column;
-  }
+.citizen-sidebar {
+  width: 240px;
+  height: calc(100vh - 70px);
+  background: #1e3c72;
+  color: white;
+  position: fixed;
+  top: 70px;
+  left: -240px;
+  padding-top: 20px;
+  transition: left 0.3s ease;
+  z-index: 1000;
+}
 
-  .sidebar {
-    width: 100%;
-    text-align: center;
-  }
+.citizen-sidebar.open {
+  left: 0;
+}
 
-  .sidebar li {
-    display: inline-block;
-    margin: 5px;
-  }
+.citizen-sidebar.closed {
+  left: -240px;
+}
 
-  .dashboard-row {
-    grid-template-columns: 1fr;
-  }
+.citizen-sidebar p {
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
 
-  .main-content {
-    padding: 20px;
-  }
+.citizen-sidebar p:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.active-link {
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: bold;
+}
+
+.citizen-content {
+  margin-left: 0;
+  padding: 40px;
+  min-height: calc(100vh - 70px);
+  width: 100%;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.citizen-sidebar.open + .citizen-content {
+  margin-left: 240px;
+  width: calc(100% - 240px);
+}
+
+.welcome-card {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.profile-section img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid #1e3c72;
+  object-fit: cover;
+}
+
+.stats {
+  display: flex;
+  gap: 25px;
+  margin-top: 25px;
+}
+
+.stat-box {
+  flex: 1;
+  background: linear-gradient(to right, #1e3c72, #2a5298);
+  color: white;
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+  transition: 0.3s;
+}
+
+.stat-box:hover {
+  transform: translateY(-3px);
+}
+
+.stat-box h3 {
+  font-size: 30px;
+  margin-bottom: 5px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 25px;
+  width: 100%;
+}
+
+.info-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: 0.3s;
+}
+
+.info-card:hover {
+  transform: translateY(-4px);
+}
+
+.active-status {
+  color: green;
+  font-weight: bold;
 }

@@ -4,7 +4,6 @@ import Footer from "./components/layout/Footer";
 import Home from "./pages/Home";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
-import CitizenForm from "./pages/citizen/CitizenForm";
 import CitizenDashboard from "./pages/citizen/CitizenDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import "./App.css";
@@ -29,7 +28,7 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/citizen-dashboard" element={<CitizenDashboard />} />
-        <Route path="/citizen-form" element={<CitizenForm />} />
+    
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>
 
