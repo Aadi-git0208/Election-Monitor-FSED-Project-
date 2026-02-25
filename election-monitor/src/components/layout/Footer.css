@@ -1,0 +1,22 @@
+/* ================= FOOTER ================= */
+
+.footer {
+  background: #1e3a8a;
+  color: white;
+  padding: 40px 60px;
+}
+
+.footer-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.copyright {
+  text-align: center;
+  margin-top: 56px;
+}
+
+.page {
+  padding: 80px;
+}

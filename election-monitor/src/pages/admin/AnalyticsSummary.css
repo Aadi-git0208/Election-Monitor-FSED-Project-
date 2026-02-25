@@ -1,0 +1,58 @@
+.analytics-summary {
+  background: white;
+  padding: 30px;
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.analytics-summary h2 {
+  margin-bottom: 25px;
+  color: #0d47a1;
+}
+
+.analytics-card {
+  margin-bottom: 30px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #f8fbff;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.progress-bar {
+  width: 100%;
+  background: #e0e0e0;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progress {
+  background: #4CAF50;
+  color: white;
+  padding: 8px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.heatmap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.heatmap-box {
+  padding: 15px;
+  color: white;
+  border-radius: 8px;
+  min-width: 120px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.download-btn {
+  padding: 8px 16px;
+  background: #1976d2;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}

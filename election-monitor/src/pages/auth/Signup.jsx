@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Signup.css";
 
 function Signup() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -10,19 +13,18 @@ function Signup() {
     confirmPassword: "",
     role: "",
     agree: false,
-    profileImage: "",   // 👈 NEW FIELD
+    profileImage: "",
   });
 
-  // Normal input change
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
+
+    setFormData((prev) => ({
+      ...prev,
       [name]: type === "checkbox" ? checked : value,
-    });
+    }));
   };
 
-  // 👇 Image Upload Handler
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
 
@@ -31,7 +33,7 @@ function Signup() {
       reader.onloadend = () => {
         setFormData((prev) => ({
           ...prev,
-          profileImage: reader.result, // Base64 image
+          profileImage: reader.result,
         }));
       };
       reader.readAsDataURL(file);
@@ -39,71 +41,58 @@ function Signup() {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
+  if (formData.password !== formData.confirmPassword) {
+    alert("Passwords do not match!");
+    return;
+  }
 
-    if (!formData.agree) {
-      alert("Please agree to Terms & Conditions");
-      return;
-    }
+  if (!formData.agree) {
+    alert("Please agree to Terms & Conditions");
+    return;
+  }
 
-    const existingUsers =
-      JSON.parse(localStorage.getItem("users")) || [];
+  const existingUsers =
+    JSON.parse(localStorage.getItem("users")) || [];
 
-    const userExists = existingUsers.find(
-      (user) => user.email === formData.email
-    );
+  const userExists = existingUsers.find(
+    (user) => user.email === formData.email
+  );
 
-    if (userExists) {
-      alert("User already registered with this email!");
-      return;
-    }
+  if (userExists) {
+    alert("User already registered with this email!");
+    return;
+  }
 
-    // 👇 Include profileImage in saved user
-    const newUser = {
-      fullName: formData.fullName,
-      email: formData.email,
-      mobile: formData.mobile,
-      password: formData.password,
-      role: formData.role,
-      profileImage: formData.profileImage, // 👈 SAVED
-    };
-
-    localStorage.setItem(
-      "users",
-      JSON.stringify([...existingUsers, newUser])
-    );
-
-    alert("Signup Successful!");
-
-    setFormData({
-      fullName: "",
-      email: "",
-      mobile: "",
-      password: "",
-      confirmPassword: "",
-      role: "",
-      agree: false,
-      profileImage: "",
-    });
+  const newUser = {
+    name: formData.fullName,
+    email: formData.email,
+    mobile: formData.mobile,
+    password: formData.password,
+    role: formData.role,
+    image: formData.profileImage || "/default-profile.png",
   };
 
+  localStorage.setItem(
+    "users",
+    JSON.stringify([...existingUsers, newUser])
+  );
+
+  alert("Signup Successful! Please Login ✅");
+
+  navigate("/login");  
+};
   return (
     <div className="signup-page">
       <div className="signup-card">
         <h2>Create Account</h2>
 
         <form onSubmit={handleSubmit}>
-
           <label>Full Name</label>
           <input
             type="text"
             name="fullName"
-            placeholder="Enter Your Name"
             required
             value={formData.fullName}
             onChange={handleChange}
@@ -113,7 +102,6 @@ function Signup() {
           <input
             type="email"
             name="email"
-            placeholder="Enter Your Email"
             required
             value={formData.email}
             onChange={handleChange}
@@ -123,7 +111,6 @@ function Signup() {
           <input
             type="tel"
             name="mobile"
-            placeholder="Enter Your Mobile Number"
             required
             value={formData.mobile}
             onChange={handleChange}
@@ -133,7 +120,6 @@ function Signup() {
           <input
             type="password"
             name="password"
-            placeholder="Password"
             required
             value={formData.password}
             onChange={handleChange}
@@ -143,7 +129,6 @@ function Signup() {
           <input
             type="password"
             name="confirmPassword"
-            placeholder="Confirm Password"
             required
             value={formData.confirmPassword}
             onChange={handleChange}
@@ -152,8 +137,8 @@ function Signup() {
           <label>Select Role</label>
           <select
             name="role"
-            value={formData.role}
             required
+            value={formData.role}
             onChange={handleChange}
           >
             <option value="">Select Role</option>
@@ -163,7 +148,6 @@ function Signup() {
             <option value="admin">Admin</option>
           </select>
 
-          {/* 👇 Upload Profile Image */}
           <label>Upload Profile Photo</label>
           <input
             type="file"
@@ -171,7 +155,6 @@ function Signup() {
             onChange={handleImageUpload}
           />
 
-          {/* 👇 Image Preview */}
           {formData.profileImage && (
             <div style={{ marginTop: "10px", textAlign: "center" }}>
               <img
@@ -182,7 +165,6 @@ function Signup() {
                   height: "80px",
                   borderRadius: "50%",
                   objectFit: "cover",
-                  border: "2px solid #2a5298",
                 }}
               />
             </div>
@@ -201,7 +183,6 @@ function Signup() {
           <button type="submit" className="signup-btn">
             Signup
           </button>
-
         </form>
       </div>
     </div>

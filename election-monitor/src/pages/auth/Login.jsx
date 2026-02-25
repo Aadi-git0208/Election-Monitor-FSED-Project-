@@ -12,7 +12,6 @@ function Login() {
     remember: false,
   });
 
-
   useEffect(() => {
     const existingUser =
       JSON.parse(localStorage.getItem("currentUser")) ||
@@ -25,6 +24,7 @@ function Login() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : value,
@@ -36,7 +36,6 @@ function Login() {
 
     const users = JSON.parse(localStorage.getItem("users")) || [];
 
-    
     const validUser = users.find(
       (user) =>
         user.email.toLowerCase() === formData.email.toLowerCase() &&
@@ -49,9 +48,8 @@ function Login() {
       return;
     }
 
-    // Remove password before storing session
    const { password: _password, ...safeUser } = validUser;
-    // Clear previous sessions
+
     localStorage.removeItem("currentUser");
     sessionStorage.removeItem("currentUser");
 
@@ -63,7 +61,6 @@ function Login() {
 
     alert("Login Successful ✅");
 
-    // Cleaner dynamic role redirect
     navigate(`/${safeUser.role}-dashboard`);
   };
 
@@ -77,7 +74,6 @@ function Login() {
           <input
             type="email"
             name="email"
-            placeholder="Enter your email"
             required
             value={formData.email}
             onChange={handleChange}
@@ -87,7 +83,6 @@ function Login() {
           <input
             type="password"
             name="password"
-            placeholder="Enter password"
             required
             value={formData.password}
             onChange={handleChange}
@@ -96,8 +91,8 @@ function Login() {
           <label>Select Role</label>
           <select
             name="role"
-            value={formData.role}
             required
+            value={formData.role}
             onChange={handleChange}
           >
             <option value="">Select Role</option>
@@ -108,7 +103,7 @@ function Login() {
           </select>
 
           <div className="login-options">
-            <label className="remember">
+            <label>
               <input
                 type="checkbox"
                 name="remember"
@@ -117,17 +112,13 @@ function Login() {
               />
               Remember me
             </label>
-
-            <Link to="#" className="forgot">
-              Forgot password?
-            </Link>
           </div>
 
           <button type="submit" className="login-btn">
             Login
           </button>
 
-          <p className="signup-link">
+          <p>
             Don’t have an account? <Link to="/signup">Signup</Link>
           </p>
         </form>

@@ -1,0 +1,91 @@
+.report-management {
+  background: white;
+  padding: 30px;
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.report-management h2 {
+  margin-bottom: 20px;
+  color: #0d47a1;
+}
+
+.report-controls {
+  margin-bottom: 20px;
+}
+
+.report-controls select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.report-table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #1565c0;
+  color: white;
+}
+
+th, td {
+  padding: 12px;
+  text-align: center;
+}
+
+.evidence-img {
+  width: 80px;
+  border-radius: 6px;
+}
+
+.status {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.status.Pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status.Resolved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status.Rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.resolve-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  margin-right: 5px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.reject-btn {
+  background: #e53935;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.no-data {
+  padding: 20px;
+  font-weight: bold;
+  color: #777;
+}

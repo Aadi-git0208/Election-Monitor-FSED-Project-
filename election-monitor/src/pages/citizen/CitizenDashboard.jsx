@@ -32,7 +32,6 @@ function CitizenDashboard() {
     navigate("/login");
   };
 
-  // ✅ NEW: Open Application Form
   const openApplicationForm = () => {
     navigate("/citizen-form");
   };
@@ -59,7 +58,8 @@ function CitizenDashboard() {
     setActiveSection("reports");
   };
 
-  const handlePostComment = () => {
+  // ✅ FIXED FUNCTION
+  const handleCommentSubmit = () => {
     if (!comment.trim()) return;
 
     setDiscussion([
@@ -70,9 +70,11 @@ function CitizenDashboard() {
     setComment("");
   };
 
-  const myReportsCount = reports.filter(
+  const myReports = reports.filter(
     (r) => r.userEmail === currentUser?.email
-  ).length;
+  );
+
+  const myReportsCount = myReports.length;
 
   /* ================= UI ================= */
 
@@ -90,79 +92,30 @@ function CitizenDashboard() {
           <li onClick={() => setActiveSection("discussion")}>Discussion</li>
           <li onClick={() => setActiveSection("notifications")}>Notifications</li>
           <li onClick={() => setActiveSection("profile")}>Profile</li>
-
-          {/* ✅ ONLY NEW ADDITION */}
           <li onClick={openApplicationForm}>Application Form</li>
-
           <li onClick={handleLogout}>Logout</li>
         </ul>
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
       <div className="main-content">
-
         <div className="topbar">
           Welcome {currentUser?.fullName || "Citizen"} 👋
         </div>
 
-        {/* ================= DASHBOARD ================= */}
+        {/* DASHBOARD */}
         {activeSection === "dashboard" && (
           <div className="dashboard-wrapper">
-
             <div className="cards">
               <div className="card">🗳 Election Active</div>
               <div className="card">📄 My Reports: {myReportsCount}</div>
               <div className="card">📊 Transparency Score: 92%</div>
               <div className="card">🏫 Polling Booth: Govt School</div>
             </div>
-
-            <div className="dashboard-row">
-              <div className="dashboard-box">
-                <h3>Live Voter Turnout</h3>
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{ width: "68%" }}
-                  ></div>
-                </div>
-                <p>68% Citizens Voted</p>
-              </div>
-
-              <div className="dashboard-box">
-                <h3>Quick Actions</h3>
-                <button onClick={() => setActiveSection("report")}>
-                  Report Issue
-                </button>
-                <button onClick={() => setActiveSection("status")}>
-                  Check Status
-                </button>
-
-                {/* ✅ Also added here (optional but useful) */}
-                <button onClick={openApplicationForm}>
-                  Open Application Form
-                </button>
-              </div>
-            </div>
-
-            <div className="dashboard-section">
-              <h3>Recent Activity</h3>
-              <ul className="activity-list">
-                <li>🟢 Your report is under review</li>
-                <li>📢 Election date announced</li>
-                <li>🔔 Transparency score updated</li>
-              </ul>
-            </div>
-
-            <div className="countdown-box">
-              <h3>Election Countdown</h3>
-              <h1>15 Days Left</h1>
-              <p>Election Date: 25 April 2026</p>
-            </div>
-
           </div>
         )}
 
-        {/* ================= REPORT ISSUE ================= */}
+        {/* REPORT ISSUE */}
         {activeSection === "report" && (
           <div className="section-box">
             <h2>Report Election Issue</h2>
@@ -211,7 +164,47 @@ function CitizenDashboard() {
           </div>
         )}
 
-        {/* ================= PROFILE ================= */}
+        {/* MY REPORTS */}
+        {activeSection === "reports" && (
+          <div className="section-box">
+            <h2>My Reports</h2>
+            {myReports.length === 0 ? (
+              <p>No reports submitted yet.</p>
+            ) : (
+              myReports.map((report, index) => (
+                <div key={index} className="report-card">
+                  <h3>{report.title}</h3>
+                  <p><strong>Type:</strong> {report.type}</p>
+                  <p><strong>Status:</strong> {report.status}</p>
+                  <p><strong>Date:</strong> {report.date}</p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* DISCUSSION */}
+        {activeSection === "discussion" && (
+          <div className="section-box">
+            <h2>Public Discussion</h2>
+
+            <div className="discussion-list">
+              {discussion.map((d, i) => (
+                <p key={i}><strong>{d.user}:</strong> {d.text}</p>
+              ))}
+            </div>
+
+            <input
+              type="text"
+              placeholder="Write a comment..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            />
+            <button onClick={handleCommentSubmit}>Post</button>
+          </div>
+        )}
+
+        {/* PROFILE */}
         {activeSection === "profile" && (
           <div className="section-box">
             <h2>My Profile</h2>

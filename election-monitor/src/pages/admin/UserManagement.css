@@ -1,0 +1,288 @@
+/* ============================= */
+/* MAIN CONTAINER */
+/* ============================= */
+
+.user-management {
+  background: #ffffff;
+  padding: 35px;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.3s ease;
+}
+
+/* ============================= */
+/* HEADER ROW */
+/* ============================= */
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.header-row h2 {
+  font-size: 22px;
+  color: #0d47a1;
+  font-weight: 600;
+}
+
+.add-btn {
+  padding: 9px 16px;
+  background: linear-gradient(to right, #1565c0, #1976d2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.3s ease;
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================= */
+/* CONTROLS */
+/* ============================= */
+
+.controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.controls input,
+.controls select {
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: 1px solid #d0d7e2;
+  outline: none;
+  font-size: 14px;
+  transition: 0.3s ease;
+}
+
+.controls input:focus,
+.controls select:focus {
+  border-color: #1565c0;
+  box-shadow: 0 0 6px rgba(21, 101, 192, 0.3);
+}
+
+/* ============================= */
+/* TABLE */
+/* ============================= */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+thead {
+  background: linear-gradient(to right, #1565c0, #1976d2);
+  color: white;
+}
+
+th {
+  padding: 14px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+td {
+  padding: 14px;
+  text-align: center;
+  border-bottom: 1px solid #eef2f7;
+}
+
+tbody tr {
+  transition: 0.3s ease;
+}
+
+tbody tr:hover {
+  background: #f5f9ff;
+}
+
+/* ============================= */
+/* PROFILE IMAGE */
+/* ============================= */
+
+.user-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #1565c0;
+}
+
+/* ============================= */
+/* ROLE DROPDOWN */
+/* ============================= */
+
+td select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+/* ============================= */
+/* STATUS */
+/* ============================= */
+
+.active {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.blocked {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+/* ============================= */
+/* BUTTONS */
+/* ============================= */
+
+.block-btn {
+  background: #ff9800;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  margin-right: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.block-btn:hover {
+  background: #f57c00;
+  transform: scale(1.05);
+}
+
+.delete-btn {
+  background: #e53935;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.delete-btn:hover {
+  background: #c62828;
+  transform: scale(1.05);
+}
+
+/* ============================= */
+/* MODAL */
+/* ============================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal h3 {
+  text-align: center;
+  color: #1565c0;
+}
+
+.modal input,
+.modal select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.modal input:focus,
+.modal select:focus {
+  border-color: #1565c0;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.save-btn {
+  background: #2e7d32;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #1b5e20;
+}
+
+.cancel-btn {
+  background: #d32f2f;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background: #b71c1c;
+}
+
+/* ============================= */
+/* ANIMATION */
+/* ============================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
+@media (max-width: 768px) {
+
+  .controls {
+    flex-direction: column;
+  }
+
+  table {
+    font-size: 13px;
+  }
+
+  .modal {
+    width: 90%;
+  }
+}

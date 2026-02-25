@@ -1,3 +1,5 @@
+/* ================= GLOBAL RESET ================= */
+
 * {
   margin: 0;
   padding: 0;
@@ -10,76 +12,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ================= NAVBAR ================= */
-.navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
 
-/* Logo Image */
-.logo-img {
-  height: 45px;   
-  width: auto;
-  object-fit: contain;
-  border-radius: 20px;
-}
-
-/* Logo Text */
-.logo {
-  font-size: 25px;
-  font-weight: bold;
-  color:white;
-}
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  padding: 15px 60px;
-  background:black;
-  align-items: center;
-}
-
-.nav-links {
-  display: flex;       
-  align-items: center;
-  gap: 20px;
-}
-
-.nav-links a {
-  text-decoration: none;
-  color:#ffffff;
-  transition: all 0.3s ease;
-  font-weight: bold;
-}
-
-.nav-links a:hover {
-  color: #d01b21;
-  border-bottom: 2px solid #1e3a8a;
-  padding-bottom: 3px;
-}
-
-.signup-btn {
-  background: #1e3a8a;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;   
-}
-
-.signup-btn:hover {
-  background: #162d6b;
-  transform: scale(1.05);
-}
-.navbar-signup {
-  background: #000;
-}
-
-.navbar-signup .logo,
-.navbar-signup a {
-  color: white;
-}
 /* ================= PROFILE SECTION ================= */
 
 .profile-section {
@@ -141,6 +74,7 @@ body {
   background: #b91c1c;
 }
 
+
 /* ================= HERO (VIDEO BACKGROUND) ================= */
 
 .hero {
@@ -154,7 +88,6 @@ body {
   overflow: hidden;
 }
 
-/* Background Video */
 .hero video {
   position: absolute;
   top: 0;
@@ -166,7 +99,6 @@ body {
   filter: blur(5px);
 }
 
-/* Hero Content */
 .hero-overlay {
   max-width: 800px;
   padding: 20px;
@@ -183,7 +115,9 @@ body {
   font-weight: bold;
 }
 
-/* Hero Buttons */
+
+/* ================= HERO BUTTONS ================= */
+
 .hero-buttons button {
   margin: 15px;
   padding: 10px 20px;
@@ -194,7 +128,6 @@ body {
   transition: all 0.3s ease;
 }
 
-/* Primary Button */
 .primary-btn {
   background: white;
   color: #1e3a8a;
@@ -207,7 +140,6 @@ body {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* Secondary Button */
 .secondary-btn {
   background: #e5e7eb;
   color: black;
@@ -219,7 +151,8 @@ body {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* ================= FEATURES ================= */
+
+/* ================= FEATURES SECTION ================= */
 
 .features {
   padding: 80px;
@@ -235,26 +168,30 @@ body {
   flex-wrap: wrap;
 }
 
-.card {
+/* 🔥 RENAMED FROM .card TO .feature-card */
+
+.feature-card {
   background: white;
   padding: 30px;
   border-radius: 12px;
   width: 300px;
   transition: all 0.3s ease;
-  box-shadow: 0 0 15px #e36161, 0 0 25px rgb(167 3 3 / 17%), 0 15px 25px #080a0a; 
+  box-shadow: 0 0 15px #e36161, 
+              0 0 25px rgba(167, 3, 3, 0.17), 
+              0 15px 25px #080a0a; 
 }
 
-.card:hover {
+.feature-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 15px 30px rgba(0,0,0,0.2);
 }
 
-/* ================= HOW ================= */
+
+/* ================= HOW IT WORKS ================= */
 
 .how {
   padding: 80px;
   text-align: center;
-  
 }
 
 .steps {
@@ -269,6 +206,7 @@ body {
   font-size: 40px;
   margin-bottom: 10px;
 }
+
 
 /* ================= CTA ================= */
 
@@ -297,28 +235,6 @@ body {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
 }
 
-/* ================= FOOTER ================= */
-
-.footer {
-  background: #1e3a8a;
-  color: white;
-  padding: 40px 60px;
-}
-
-.footer-container {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-
-.copyright {
-  text-align: center;
-  margin-top: 56px;
-}
-
-.page {
-  padding: 80px;
-}
 
 /* ================= RESPONSIVE ================= */
 

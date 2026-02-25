@@ -1,0 +1,267 @@
+/* ============================= */
+/* GLOBAL LAYOUT */
+/* ============================= */
+
+.admin-layout {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f4f7fb;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ============================= */
+/* NAVBAR */
+/* ============================= */
+
+.admin-navbar {
+  height: 65px;
+  background: linear-gradient(to right, #0d47a1, #1565c0);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 2000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.menu-btn {
+  font-size: 24px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+}
+
+.logout-btn {
+  padding: 6px 14px;
+  background: #e53935;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: #c62828;
+}
+
+/* ============================= */
+/* BODY WRAPPER */
+/* ============================= */
+
+.admin-body {
+  display: flex;
+  margin-top: 65px;
+  height: calc(100vh - 65px);
+  position: relative;
+}
+
+/* ============================= */
+/* SIDEBAR */
+/* ============================= */
+
+.admin-sidebar {
+  width: 260px;
+  background: linear-gradient(to bottom, #1565c0, #1976d2);
+  color: white;
+  position: fixed;
+  top: 65px;
+  left: 0;
+  height: calc(100vh - 65px);
+  padding-top: 25px;
+  transition: 0.3s ease;
+  z-index: 1500;
+}
+
+.admin-sidebar.closed {
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.admin-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-sidebar li {
+  padding: 15px 25px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-size: 15px;
+}
+
+.admin-sidebar li:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.admin-sidebar li.active {
+  background: rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+}
+
+/* ============================= */
+/* MAIN CONTENT */
+/* ============================= */
+
+.admin-container {
+  flex: 1;
+  padding: 40px;
+  margin-left: 260px;
+  transition: margin-left 0.3s ease;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-sidebar.closed + .admin-container {
+  margin-left: 0;
+}
+
+/* ============================= */
+/* HEADER */
+/* ============================= */
+
+.admin-container h1 {
+  text-align: center;
+  color: #0d47a1;
+  margin-bottom: 45px;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+/* ============================= */
+/* DASHBOARD CARDS */
+/* ============================= */
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+  margin-bottom: 50px;
+}
+
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  transition: 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card h3 {
+  color: #666;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.card h2 {
+  font-size: 36px;
+  color: #1565c0;
+  margin: 0;
+}
+
+/* ============================= */
+/* GRAPH SECTION */
+/* ============================= */
+
+.graph-section {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+}
+
+.graph-card {
+  background: white;
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  transition: 0.3s ease;
+}
+
+.graph-card:hover {
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
+}
+
+.graph-card h3 {
+  margin-bottom: 20px;
+  color: #0d47a1;
+  font-size: 18px;
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
+@media (max-width: 1200px) {
+  .card-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .graph-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .admin-sidebar {
+    position: fixed;
+    z-index: 2000;
+  }
+
+  .admin-container {
+    margin-left: 0;
+  }
+
+  .admin-navbar h2 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .card-container {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-container {
+    padding: 20px;
+  }
+
+  .card h2 {
+    font-size: 28px;
+  }
+
+  .profile-pic {
+    width: 35px;
+    height: 35px;
+  }
+}
