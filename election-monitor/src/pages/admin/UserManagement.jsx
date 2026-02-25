@@ -1,48 +1,81 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./UserManagement.css";
 
 function UserManagement() {
-
-  const [users, setUsers] = useState(() => {
-    return JSON.parse(localStorage.getItem("users")) || [];
-  });
-
+  const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("all");
-
   const [showModal, setShowModal] = useState(false);
 
   const [newUser, setNewUser] = useState({
-    name: "",
+    fullName: "",
     email: "",
     role: "citizen",
-    image: "",
+    profileImage: "",
   });
+
+  /* ================= LOAD USERS ================= */
+
+  useEffect(() => {
+    const loadUsers = () => {
+      const systemData =
+        JSON.parse(localStorage.getItem("electionSystem")) || {
+          users: [],
+          elections: [],
+          reports: [],
+          notifications: [],
+        };
+
+      setUsers(systemData.users || []);
+    };
+
+    loadUsers();
+
+    const interval = setInterval(loadUsers, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   /* ================= UPDATE STORAGE ================= */
 
   const updateStorage = (updatedUsers) => {
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    const systemData =
+      JSON.parse(localStorage.getItem("electionSystem")) || {
+        users: [],
+        elections: [],
+        reports: [],
+        notifications: [],
+      };
+
+    systemData.users = updatedUsers;
+
+    localStorage.setItem("electionSystem", JSON.stringify(systemData));
     setUsers(updatedUsers);
   };
 
   /* ================= ADD USER ================= */
 
   const handleAddUser = () => {
-    if (!newUser.name || !newUser.email) {
+    if (!newUser.fullName || !newUser.email) {
       alert("Please fill all fields");
       return;
     }
 
-    const userExists = users.find(u => u.email === newUser.email);
+    const userExists = users.find(
+      (u) => u.email.toLowerCase() === newUser.email.toLowerCase()
+    );
+
     if (userExists) {
       alert("User already exists!");
       return;
     }
 
     const userToAdd = {
-      ...newUser,
-      password: "123456", // default password
+      id: Date.now(),
+      fullName: newUser.fullName,
+      email: newUser.email,
+      role: newUser.role,
+      password: "123456",
+      profileImage: newUser.profileImage || "/default-profile.png",
       blocked: false,
     };
 
@@ -50,23 +83,27 @@ function UserManagement() {
     updateStorage(updated);
 
     setShowModal(false);
-    setNewUser({ name: "", email: "", role: "citizen", image: "" });
+    setNewUser({
+      fullName: "",
+      email: "",
+      role: "citizen",
+      profileImage: "",
+    });
   };
 
   /* ================= DELETE ================= */
 
   const deleteUser = (email) => {
-    const confirmDelete = window.confirm("Delete this user?");
-    if (!confirmDelete) return;
+    if (!window.confirm("Delete this user?")) return;
 
-    const updated = users.filter(user => user.email !== email);
+    const updated = users.filter((user) => user.email !== email);
     updateStorage(updated);
   };
 
   /* ================= BLOCK ================= */
 
   const toggleBlock = (email) => {
-    const updated = users.map(user =>
+    const updated = users.map((user) =>
       user.email === email
         ? { ...user, blocked: !user.blocked }
         : user
@@ -77,7 +114,7 @@ function UserManagement() {
   /* ================= CHANGE ROLE ================= */
 
   const changeRole = (email, newRole) => {
-    const updated = users.map(user =>
+    const updated = users.map((user) =>
       user.email === email
         ? { ...user, role: newRole }
         : user
@@ -88,10 +125,10 @@ function UserManagement() {
   /* ================= FILTER ================= */
 
   const filteredUsers = users
-    .filter(user =>
-      user.name?.toLowerCase().includes(search.toLowerCase())
+    .filter((user) =>
+      user.fullName?.toLowerCase().includes(search.toLowerCase())
     )
-    .filter(user =>
+    .filter((user) =>
       filterRole === "all" ? true : user.role === filterRole
     );
 
@@ -104,7 +141,6 @@ function UserManagement() {
         </button>
       </div>
 
-      {/* Controls */}
       <div className="controls">
         <input
           type="text"
@@ -125,7 +161,6 @@ function UserManagement() {
         </select>
       </div>
 
-      {/* Table */}
       <table>
         <thead>
           <tr>
@@ -139,61 +174,69 @@ function UserManagement() {
         </thead>
 
         <tbody>
-          {filteredUsers.map((user) => (
-            <tr key={user.email}>
-              <td>
-                <img
-                  src={user.image || "/default-profile.png"}
-                  alt="profile"
-                  className="user-img"
-                />
-              </td>
-              <td>{user.name}</td>
-              <td>{user.email}</td>
-
-              <td>
-                <select
-                  value={user.role}
-                  onChange={(e) =>
-                    changeRole(user.email, e.target.value)
-                  }
-                >
-                  <option value="citizen">Citizen</option>
-                  <option value="observer">Observer</option>
-                  <option value="analyst">Analyst</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </td>
-
-              <td>
-                {user.blocked ? (
-                  <span className="blocked">Blocked</span>
-                ) : (
-                  <span className="active">Active</span>
-                )}
-              </td>
-
-              <td>
-                <button
-                  className="block-btn"
-                  onClick={() => toggleBlock(user.email)}
-                >
-                  {user.blocked ? "Unblock" : "Block"}
-                </button>
-
-                <button
-                  className="delete-btn"
-                  onClick={() => deleteUser(user.email)}
-                >
-                  Delete
-                </button>
+          {filteredUsers.length === 0 ? (
+            <tr>
+              <td colSpan="6" style={{ textAlign: "center" }}>
+                No Users Found
               </td>
             </tr>
-          ))}
+          ) : (
+            filteredUsers.map((user) => (
+              <tr key={user.email}>
+                <td>
+                  <img
+                    src={user.profileImage || "/default-profile.png"}
+                    alt="profile"
+                    className="user-img"
+                  />
+                </td>
+
+                <td>{user.fullName}</td>
+                <td>{user.email}</td>
+
+                <td>
+                  <select
+                    value={user.role}
+                    onChange={(e) =>
+                      changeRole(user.email, e.target.value)
+                    }
+                  >
+                    <option value="citizen">Citizen</option>
+                    <option value="observer">Observer</option>
+                    <option value="analyst">Analyst</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </td>
+
+                <td>
+                  {user.blocked ? (
+                    <span className="blocked">Blocked</span>
+                  ) : (
+                    <span className="active">Active</span>
+                  )}
+                </td>
+
+                <td>
+                  <button
+                    className="block-btn"
+                    onClick={() => toggleBlock(user.email)}
+                  >
+                    {user.blocked ? "Unblock" : "Block"}
+                  </button>
+
+                  <button
+                    className="delete-btn"
+                    onClick={() => deleteUser(user.email)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
 
-      {/* ================= MODAL ================= */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
@@ -202,9 +245,9 @@ function UserManagement() {
             <input
               type="text"
               placeholder="Full Name"
-              value={newUser.name}
+              value={newUser.fullName}
               onChange={(e) =>
-                setNewUser({ ...newUser, name: e.target.value })
+                setNewUser({ ...newUser, fullName: e.target.value })
               }
             />
 

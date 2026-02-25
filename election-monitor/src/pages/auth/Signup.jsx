@@ -53,31 +53,44 @@ function Signup() {
     return;
   }
 
-  const existingUsers =
-    JSON.parse(localStorage.getItem("users")) || [];
-
-  const userExists = existingUsers.find(
-    (user) => user.email === formData.email
-  );
-
-  if (userExists) {
-    alert("User already registered with this email!");
-    return;
-  }
-
-  const newUser = {
-    name: formData.fullName,
-    email: formData.email,
-    mobile: formData.mobile,
-    password: formData.password,
-    role: formData.role,
-    image: formData.profileImage || "/default-profile.png",
+  // 🔥 Get Master System Data
+const systemData =
+  JSON.parse(localStorage.getItem("electionSystem")) || {
+    users: [],
+    elections: [],
+    reports: [],
+    notifications: [],
   };
 
-  localStorage.setItem(
-    "users",
-    JSON.stringify([...existingUsers, newUser])
-  );
+// 🔎 Check existing user
+const userExists = systemData.users.find(
+  (user) => user.email === formData.email
+);
+
+if (userExists) {
+  alert("User already registered with this email!");
+  return;
+}
+
+// 🆕 Create new user
+const newUser = {
+  id: Date.now(),
+  fullName: formData.fullName,
+  email: formData.email,
+  mobile: formData.mobile,
+  password: formData.password,
+  role: formData.role,
+  profileImage: formData.profileImage || "/default-profile.png",
+};
+
+// ✅ Push into electionSystem.users
+systemData.users.push(newUser);
+
+// 💾 Save back
+localStorage.setItem(
+  "electionSystem",
+  JSON.stringify(systemData)
+);
 
   alert("Signup Successful! Please Login ✅");
 

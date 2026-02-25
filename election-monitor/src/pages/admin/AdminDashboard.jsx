@@ -20,8 +20,6 @@ import {
 
 function AdminDashboard() {
 
-  /* ================= STATE ================= */
-
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeSection, setActiveSection] = useState("dashboard");
 
@@ -37,16 +35,22 @@ function AdminDashboard() {
     JSON.parse(localStorage.getItem("currentUser")) ||
     JSON.parse(sessionStorage.getItem("currentUser"));
 
-  /* ================= LOAD DATA ================= */
-
   useEffect(() => {
     const loadData = () => {
-      const users = JSON.parse(localStorage.getItem("users")) || [];
-      const reports = JSON.parse(localStorage.getItem("reports")) || [];
-      const elections = JSON.parse(localStorage.getItem("elections")) || [];
+      const systemData =
+        JSON.parse(localStorage.getItem("electionSystem")) || {
+          users: [],
+          elections: [],
+          reports: [],
+          notifications: [],
+        };
 
-      const citizens = users.filter(u => u.role === "citizen");
-      const observers = users.filter(u => u.role === "observer");
+      const users = systemData.users || [];
+      const reports = systemData.reports || [];
+      const elections = systemData.elections || [];
+
+      const citizens = users.filter((u) => u.role === "citizen");
+      const observers = users.filter((u) => u.role === "observer");
 
       setData({
         totalCitizens: citizens.length,
@@ -58,11 +62,10 @@ function AdminDashboard() {
     };
 
     loadData();
+
     const interval = setInterval(loadData, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  /* ================= REPORT GRAPH ================= */
 
   const reportPerDay =
     data.reportsData?.reduce((acc, report) => {
@@ -83,12 +86,9 @@ function AdminDashboard() {
 
   const COLORS = ["#0088FE", "#FF8042"];
 
-  /* ================= UI ================= */
-
   return (
     <div className="admin-layout">
 
-      {/* ===== NAVBAR ===== */}
       <div className="admin-navbar">
         <button
           className="menu-btn"
@@ -99,39 +99,37 @@ function AdminDashboard() {
 
         <h2>VOTEGUARD</h2>
 
-    <div className="user-section">
-  <img
-    src={
-      currentUser?.profileImage ||
-      currentUser?.profilePic ||
-      currentUser?.image ||
-      "/default-profile.png"
-    }
-    alt="profile"
-    className="profile-pic"
-  />
+        <div className="user-section">
+          <img
+            src={
+              currentUser?.profileImage ||
+              currentUser?.profilePic ||
+              currentUser?.image ||
+              "/default-profile.png"
+            }
+            alt="profile"
+            className="profile-pic"
+          />
 
-  <span className="admin-name">
-    {currentUser?.fullName || currentUser?.name || "Admin"}
-  </span>
+          <span className="admin-name">
+            {currentUser?.fullName || currentUser?.name || "Admin"}
+          </span>
 
-  <button
-    className="logout-btn"
-    onClick={() => {
-      localStorage.removeItem("currentUser");
-      sessionStorage.removeItem("currentUser");
-      window.location.href = "/";
-    }}
-  >
-    Logout
-  </button>
-</div>
+          <button
+            className="logout-btn"
+            onClick={() => {
+              localStorage.removeItem("currentUser");
+              sessionStorage.removeItem("currentUser");
+              window.location.href = "/";
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
-      {/* ===== BODY ===== */}
       <div className="admin-body">
 
-        {/* ===== SIDEBAR ===== */}
         <div className={`admin-sidebar ${sidebarOpen ? "open" : "closed"}`}>
           <ul>
 
@@ -156,32 +154,32 @@ function AdminDashboard() {
               Election Management
             </li>
 
-           <li
-       className={activeSection === "reports" ? "active" : ""}
-       onClick={() => setActiveSection("reports")}
-        >
-           Report Management
-       </li>
             <li
-        className={activeSection === "security" ? "active" : ""}
-        onClick={() => setActiveSection("security")}
-        >
-           Security Panel
-      </li>
+              className={activeSection === "reports" ? "active" : ""}
+              onClick={() => setActiveSection("reports")}
+            >
+              Report Management
+            </li>
+
             <li
-           className={activeSection === "analytics" ? "active" : ""}
-          onClick={() => setActiveSection("analytics")}
-              >
+              className={activeSection === "security" ? "active" : ""}
+              onClick={() => setActiveSection("security")}
+            >
+              Security Panel
+            </li>
+
+            <li
+              className={activeSection === "analytics" ? "active" : ""}
+              onClick={() => setActiveSection("analytics")}
+            >
               Analytics Summary
             </li>
 
           </ul>
         </div>
 
-        {/* ===== MAIN CONTENT ===== */}
         <div className={`admin-container ${sidebarOpen ? "shift" : ""}`}>
 
-          {/* ===== DASHBOARD ===== */}
           {activeSection === "dashboard" && (
             <>
               <h1>WELCOME TO THE ADMIN PAGE</h1>
@@ -253,10 +251,7 @@ function AdminDashboard() {
             </>
           )}
 
-          {/* ===== USER MANAGEMENT ===== */}
           {activeSection === "users" && <UserManagement />}
-
-          {/* ===== ELECTION MANAGEMENT ===== */}
           {activeSection === "elections" && <ElectionManagement />}
           {activeSection === "reports" && <ReportManagement />}
           {activeSection === "security" && <SecurityPanel />}

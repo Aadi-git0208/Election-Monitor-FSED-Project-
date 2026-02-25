@@ -3,34 +3,57 @@ import "./ReportManagement.css";
 
 function ReportManagement() {
 
+  const getSystemData = () => {
+    return JSON.parse(localStorage.getItem("electionSystem")) || {
+      users: [],
+      elections: [],
+      reports: [],
+      notifications: [],
+    };
+  };
+
   const [reports, setReports] = useState(() => {
-    return JSON.parse(localStorage.getItem("reports")) || [];
+    const systemData = getSystemData();
+    return systemData.reports || [];
   });
 
   const [filterStatus, setFilterStatus] = useState("all");
 
   const updateStorage = (updatedReports) => {
-    localStorage.setItem("reports", JSON.stringify(updatedReports));
+    const systemData = getSystemData();
+    systemData.reports = updatedReports;
+
+    localStorage.setItem(
+      "electionSystem",
+      JSON.stringify(systemData)
+    );
+
     setReports(updatedReports);
   };
 
   const changeStatus = (id, status) => {
     const updated = reports.map((report) =>
-      report.id === id ? { ...report, status } : report
+      report.id === id
+        ? { ...report, status }
+        : report
     );
     updateStorage(updated);
   };
 
   const assignObserver = (id, observerName) => {
     const updated = reports.map((report) =>
-      report.id === id ? { ...report, assignedTo: observerName } : report
+      report.id === id
+        ? { ...report, assignedTo: observerName }
+        : report
     );
     updateStorage(updated);
   };
 
   const addComment = (id, comment) => {
     const updated = reports.map((report) =>
-      report.id === id ? { ...report, adminComment: comment } : report
+      report.id === id
+        ? { ...report, adminComment: comment }
+        : report
     );
     updateStorage(updated);
   };
@@ -45,7 +68,6 @@ function ReportManagement() {
 
       <h2>Report Management</h2>
 
-      {/* FILTER */}
       <div className="report-controls">
         <select
           value={filterStatus}
@@ -58,7 +80,6 @@ function ReportManagement() {
         </select>
       </div>
 
-      {/* TABLE */}
       <div className="report-table-wrapper">
         <table>
           <thead>
@@ -93,14 +114,14 @@ function ReportManagement() {
                   </td>
 
                   <td>
-                    {report.evidence ? (
-                      report.evidence.includes("video") ? (
+                    {report.image ? (
+                      report.image.includes("video") ? (
                         <video width="80" controls>
-                          <source src={report.evidence} />
+                          <source src={report.image} />
                         </video>
                       ) : (
                         <img
-                          src={report.evidence}
+                          src={report.image}
                           alt="evidence"
                           className="evidence-img"
                         />

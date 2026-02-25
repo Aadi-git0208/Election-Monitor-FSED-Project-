@@ -3,8 +3,18 @@ import "./ElectionManagement.css";
 
 function ElectionManagement() {
 
+  const getSystemData = () => {
+    return JSON.parse(localStorage.getItem("electionSystem")) || {
+      users: [],
+      elections: [],
+      reports: [],
+      notifications: [],
+    };
+  };
+
   const [elections, setElections] = useState(() => {
-    return JSON.parse(localStorage.getItem("elections")) || [];
+    const systemData = getSystemData();
+    return systemData.elections || [];
   });
 
   const [showModal, setShowModal] = useState(false);
@@ -18,9 +28,16 @@ function ElectionManagement() {
     active: false,
   });
 
-  const updateStorage = (updated) => {
-    localStorage.setItem("elections", JSON.stringify(updated));
-    setElections(updated);
+  const updateStorage = (updatedElections) => {
+    const systemData = getSystemData();
+    systemData.elections = updatedElections;
+
+    localStorage.setItem(
+      "electionSystem",
+      JSON.stringify(systemData)
+    );
+
+    setElections(updatedElections);
   };
 
   const handleCreate = () => {
@@ -29,7 +46,20 @@ function ElectionManagement() {
       return;
     }
 
-    const updated = [...elections, newElection];
+    const formattedElection = {
+      id: Date.now(),
+      ...newElection,
+      candidates: newElection.candidates
+        .split(",")
+        .map((c) => c.trim()),
+      observers: newElection.observers
+        .split(",")
+        .map((o) => o.trim()),
+      active: false,
+      createdAt: new Date().toLocaleDateString(),
+    };
+
+    const updated = [...elections, formattedElection];
     updateStorage(updated);
 
     setShowModal(false);
@@ -43,15 +73,21 @@ function ElectionManagement() {
     });
   };
 
-  const toggleActive = (index) => {
-    const updated = elections.map((election, i) =>
-      i === index ? { ...election, active: !election.active } : election
+  const toggleActive = (id) => {
+    const updated = elections.map((election) =>
+      election.id === id
+        ? { ...election, active: !election.active }
+        : election
     );
+
     updateStorage(updated);
   };
 
-  const deleteElection = (index) => {
-    const updated = elections.filter((_, i) => i !== index);
+  const deleteElection = (id) => {
+    const updated = elections.filter(
+      (election) => election.id !== id
+    );
+
     updateStorage(updated);
   };
 
@@ -79,13 +115,21 @@ function ElectionManagement() {
         </thead>
 
         <tbody>
-          {elections.map((election, index) => (
-            <tr key={index}>
+          {elections.map((election) => (
+            <tr key={election.id}>
               <td>{election.title}</td>
               <td>{election.startDate}</td>
               <td>{election.endDate}</td>
-              <td>{election.candidates}</td>
-              <td>{election.observers}</td>
+              <td>
+                {Array.isArray(election.candidates)
+                  ? election.candidates.join(", ")
+                  : election.candidates}
+              </td>
+              <td>
+                {Array.isArray(election.observers)
+                  ? election.observers.join(", ")
+                  : election.observers}
+              </td>
               <td>
                 {election.active ? (
                   <span className="active">Active</span>
@@ -96,14 +140,14 @@ function ElectionManagement() {
               <td>
                 <button
                   className="activate-btn"
-                  onClick={() => toggleActive(index)}
+                  onClick={() => toggleActive(election.id)}
                 >
                   {election.active ? "Deactivate" : "Activate"}
                 </button>
 
                 <button
                   className="delete-btn"
-                  onClick={() => deleteElection(index)}
+                  onClick={() => deleteElection(election.id)}
                 >
                   Delete
                 </button>
@@ -112,8 +156,6 @@ function ElectionManagement() {
           ))}
         </tbody>
       </table>
-
-      {/* ================= MODAL ================= */}
 
       {showModal && (
         <div className="modal-overlay">

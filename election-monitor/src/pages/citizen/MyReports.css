@@ -1,0 +1,74 @@
+.myreports-container {
+  padding: 20px;
+}
+
+.no-reports {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 16px;
+  color: gray;
+}
+
+.report-card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+.status.pending {
+  background: orange;
+}
+
+.status.resolved {
+  background: green;
+}
+
+.status.rejected {
+  background: red;
+}
+
+.report-description {
+  margin-top: 10px;
+}
+
+.report-image {
+  width: 150px;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+
+.report-location {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #555;
+}
+
+.admin-response {
+  margin-top: 12px;
+  font-size: 14px;
+  background: #f4f4f4;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.report-date {
+  margin-top: 10px;
+  font-size: 13px;
+  color: gray;
+}
