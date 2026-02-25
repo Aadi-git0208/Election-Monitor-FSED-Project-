@@ -59,9 +59,16 @@ function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
+    // 🔥 READ FROM electionSystem
+    const systemData =
+      JSON.parse(localStorage.getItem("electionSystem")) || {
+        users: [],
+        elections: [],
+        reports: [],
+        notifications: [],
+      };
 
-    const validUser = users.find(
+    const validUser = systemData.users.find(
       (user) =>
         user.email.toLowerCase() === formData.email.toLowerCase() &&
         user.password === formData.password &&
@@ -73,8 +80,7 @@ function Login() {
       return;
     }
 
-    // Remove password before saving session
-    const { password: _password, ...safeUser } = validUser;
+   const { password: _password, ...safeUser } = validUser;
 
     localStorage.removeItem("currentUser");
     sessionStorage.removeItem("currentUser");

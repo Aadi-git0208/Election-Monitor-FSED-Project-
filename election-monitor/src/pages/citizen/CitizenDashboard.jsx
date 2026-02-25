@@ -1,18 +1,51 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./CitizenDashboard.css";
 import LiveElectionTracker from "./LiveElectionTracker";
+import ReportIssue from "./ReportIssue";
+import MyReports from "./MyReports";
+import CivicDiscussionForum from "./CivicDiscussionForum";
+import Notifications from "./Notification";
+import Profile from "./Profile";
 
 function CitizenDashboard() {
   const [activeSection, setActiveSection] = useState("dashboard");
-   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [systemData, setSystemData] = useState({
+    users: [],
+    elections: [],
+    reports: [],
+    notifications: [],
+  });
 
   const currentUser =
     JSON.parse(localStorage.getItem("currentUser")) ||
     JSON.parse(sessionStorage.getItem("currentUser")) ||
     {};
 
-  const reports =
-    JSON.parse(localStorage.getItem("citizenReports")) || [];
+  useEffect(() => {
+    const loadData = () => {
+      const data =
+        JSON.parse(localStorage.getItem("electionSystem")) || {
+          users: [],
+          elections: [],
+          reports: [],
+          notifications: [],
+        };
+      setSystemData(data);
+    };
+
+    loadData();
+    const interval = setInterval(loadData, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const activeElections = systemData.elections.filter(
+    (e) => e.active === true
+  );
+
+  const userReports = systemData.reports.filter(
+    (r) => r.userId === currentUser?.id || !r.userId
+  );
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
@@ -22,8 +55,6 @@ function CitizenDashboard() {
 
   return (
     <div className="citizen-wrapper">
-
-      {/* ================= NAVBAR ================= */}
       <div className="citizen-navbar">
         <button
           className="citizenmenu-btn"
@@ -31,36 +62,33 @@ function CitizenDashboard() {
         >
           ☰
         </button>
+
         <div className="nav-left">
           <h2>VOTEGUARD</h2>
         </div>
 
-       <div className="user-section">
-  <img
-    src={
-      currentUser?.profileImage ||
-      currentUser?.profilePic ||
-      currentUser?.image ||
-      "/default-profile.png"
-    }
-    alt="profile"
-    className="profile-pic"
-  />
+        <div className="user-section">
+          <img
+            src={
+              currentUser?.profileImage ||
+              currentUser?.profilePic ||
+              currentUser?.image ||
+              "/default-profile.png"
+            }
+            alt="profile"
+            className="profile-pic"
+          />
 
-  <span className="admin-name">
-    {currentUser?.fullName || currentUser?.name || "Admin"}
-  </span>
+          <span className="admin-name">
+            {currentUser?.fullName || currentUser?.name || "Citizen"}
+          </span>
 
-  <button
-  className="logout-btn"
-  onClick={handleLogout}
->
-  Logout
-</button>
-</div>
+          <button className="logout-btn" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </div>
 
-      {/* ================= SIDEBAR ================= */}
       <div className="citizen-layout">
         <div className={`citizen-sidebar ${sidebarOpen ? "open" : "closed"}`}>
           <p
@@ -83,72 +111,69 @@ function CitizenDashboard() {
           >
             Report an Issue
           </p>
-
-          <p
+           <p
             className={activeSection === "myreports" ? "active-link" : ""}
             onClick={() => setActiveSection("myreports")}
           >
             My Reports
           </p>
-
           <p
-            className={activeSection === "forum" ? "active-link" : ""}
-            onClick={() => setActiveSection("forum")}
+            className={activeSection === "civicforum" ? "active-link" : ""}
+            onClick={() => setActiveSection("civicforum")}
           >
             Civic Discussion Forum
           </p>
-
-          <p
+           <p
             className={activeSection === "notifications" ? "active-link" : ""}
             onClick={() => setActiveSection("notifications")}
           >
-            Notifications
+            Notification
           </p>
-
-          <p
+           <p
             className={activeSection === "profile" ? "active-link" : ""}
             onClick={() => setActiveSection("profile")}
           >
-            Profile Settings
+            Profile
           </p>
         </div>
 
-        {/* ================= MAIN CONTENT ================= */}
         <div className="citizen-content">
-
           {activeSection === "dashboard" && (
             <>
               <div className="welcome-card">
                 <div className="profile-section">
                   <img
-    src={
-      currentUser?.profileImage ||
-      currentUser?.profilePic ||
-      currentUser?.image ||
-      "/default-profile.png"
-    }
-    alt="profile"
-    className="profile-pic"
-  />
+                    src={
+                      currentUser?.profileImage ||
+                      currentUser?.profilePic ||
+                      currentUser?.image ||
+                      "/default-profile.png"
+                    }
+                    alt="profile"
+                    className="profile-pic"
+                  />
                   <div>
                     <h2>
-                      Welcome,   {currentUser?.fullName || currentUser?.name || "Citizen"}
+                      Welcome,{" "}
+                      {currentUser?.fullName ||
+                        currentUser?.name ||
+                        "Citizen"}
                     </h2>
                     <p>
                       <strong>Voter ID:</strong>{" "}
-                      {currentUser.voterId || "VOT123456"}
+                      {currentUser?.voterId || "N/A"}
                     </p>
                   </div>
                 </div>
 
                 <div className="stats">
                   <div className="stat-box">
-                    <h3>1</h3>
+                    <h3>{activeElections.length}</h3>
                     <p>Active Elections</p>
                   </div>
 
                   <div className="stat-box">
-                    <h3>{reports.length}</h3>
+                    <h3>{userReports.length}</h3>
                     <p>Total Reports Submitted</p>
                   </div>
                 </div>
@@ -156,31 +181,44 @@ function CitizenDashboard() {
 
               <div className="info-grid">
                 <div className="info-card">
-                  <h3>🗳 Live Election</h3>
-                  <p>City Council Election 2026</p>
-                  <p>
-                    Status: <span className="active-status">Ongoing</span>
-                  </p>
+                  <h3>🗳 Live Elections</h3>
+                  {activeElections.length === 0 ? (
+                    <p>No Active Elections</p>
+                  ) : (
+                    activeElections.map((e) => (
+                      <p key={e.id}>{e.title}</p>
+                    ))
+                  )}
                 </div>
 
                 <div className="info-card">
                   <h3>📝 Recent Report</h3>
-                  <p>
-                    {reports.length > 0
-                      ? reports[reports.length - 1].title
-                      : "No reports submitted yet"}
-                  </p>
+                  {userReports.length > 0 ? (
+                    <p>
+                      {
+                        userReports[userReports.length - 1]
+                          .title
+                      }
+                    </p>
+                  ) : (
+                    <p>No reports submitted yet</p>
+                  )}
                 </div>
 
                 <div className="info-card">
                   <h3>🔔 Notifications</h3>
-                  <p>You have 2 new updates</p>
+                  <p>{systemData.notifications.length} updates</p>
                 </div>
               </div>
             </>
           )}
-           {activeSection === "livelections" && <LiveElectionTracker />}
 
+          {activeSection === "elections" && <LiveElectionTracker />}
+          {activeSection === "report" && <ReportIssue />}
+          {activeSection === "myreports" && <MyReports />}
+          {activeSection === "civicforum" && <CivicDiscussionForum />}
+          {activeSection === "notifications" && <Notifications />}
+          {activeSection === "profile" && <Profile />}
         </div>
       </div>
     </div>
