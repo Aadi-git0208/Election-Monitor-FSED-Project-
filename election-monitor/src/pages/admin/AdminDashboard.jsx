@@ -26,6 +26,8 @@ function AdminDashboard() {
   const [data, setData] = useState({
     totalCitizens: 0,
     totalObservers: 0,
+    totalAdmin: 0,
+    totalAnalysts: 0,
     totalReports: 0,
     totalElections: 0,
     reportsData: [],
@@ -51,10 +53,14 @@ function AdminDashboard() {
 
       const citizens = users.filter((u) => u.role === "citizen");
       const observers = users.filter((u) => u.role === "observer");
+      const Admin = users.filter((u) => u.role === "admin");
+      const Analysts = users.filter((u) => u.role === "analyst");
 
       setData({
         totalCitizens: citizens.length,
         totalObservers: observers.length,
+        totalAdmin: Admin.length,
+        totalAnalysts: Analysts.length,
         totalReports: reports.length,
         totalElections: elections.length,
         reportsData: reports,
@@ -82,9 +88,11 @@ function AdminDashboard() {
   const pieData = [
     { name: "Citizens", value: data.totalCitizens },
     { name: "Observers", value: data.totalObservers },
+    { name: "admin",value: data.totalAdmin},
+    { name: "Analysts", value: data.totalAnalysts },
   ];
 
-  const COLORS = ["#0088FE", "#FF8042"];
+  const COLORS = ["#0088FE", "#FF8042" ,"#FFBB28","#00C49F"];
 
   return (
     <div className="admin-layout">
