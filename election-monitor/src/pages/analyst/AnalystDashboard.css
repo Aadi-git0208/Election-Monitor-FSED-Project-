@@ -1,0 +1,63 @@
+/* ===== LAYOUT ===== */
+.analyst-page {
+  display: flex;
+  min-height: calc(100vh - 120px);
+  background: linear-gradient(to right, #65d6ad, #7faed9);
+}
+
+/* ===== SIDEBAR ===== */
+.analyst-sidebar {
+  width: 260px;
+  background: linear-gradient(180deg, #1f3c88, #2b4a86);
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+}
+
+.sidebar-header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.sidebar-header h3 {
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+/* ===== MENU ===== */
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-link {
+  text-decoration: none;
+  color: #ddd;
+  padding: 12px 15px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-size: 15px;
+}
+
+/* Hover Effect */
+.sidebar-link:hover {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  transform: translateX(5px);
+}
+
+/* Active Link */
+.sidebar-link.active {
+  background: white;
+  color: #1f3c88;
+  font-weight: 600;
+}
+
+/* ===== CONTENT ===== */
+.analyst-content {
+  flex: 1;
+  padding: 30px;
+}

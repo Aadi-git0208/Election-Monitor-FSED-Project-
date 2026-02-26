@@ -12,15 +12,40 @@ function Login() {
     remember: false,
   });
 
+  // 🔥 Auto Login If Already Logged In
   useEffect(() => {
     const existingUser =
       JSON.parse(localStorage.getItem("currentUser")) ||
       JSON.parse(sessionStorage.getItem("currentUser"));
 
     if (existingUser) {
-      navigate(`/${existingUser.role}-dashboard`);
+      redirectUser(existingUser.role);
     }
-  }, [navigate]);
+  }, []);
+
+  // 🔥 Central Redirect Function (Scalable)
+  const redirectUser = (role) => {
+    switch (role) {
+      case "analyst":
+        navigate("/analyst");
+        break;
+
+      case "admin":
+        navigate("/admin-dashboard");
+        break;
+
+      case "citizen":
+        navigate("/citizen-dashboard");
+        break;
+
+      case "observer":
+        navigate("/observer-dashboard");
+        break;
+
+      default:
+        navigate("/");
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -55,7 +80,7 @@ function Login() {
       return;
     }
 
-    const { password: _password, ...safeUser } = validUser;
+   const { password: _password, ...safeUser } = validUser;
 
     localStorage.removeItem("currentUser");
     sessionStorage.removeItem("currentUser");
@@ -68,7 +93,7 @@ function Login() {
 
     alert("Login Successful ✅");
 
-    navigate(`/${safeUser.role}-dashboard`);
+    redirectUser(safeUser.role);
   };
 
   return (
