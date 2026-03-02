@@ -12,6 +12,7 @@ function UserManagement() {
     email: "",
     role: "citizen",
     profileImage: "",
+    password: "",
   });
 
   /* ================= LOAD USERS ================= */
@@ -30,7 +31,6 @@ function UserManagement() {
     };
 
     loadUsers();
-
     const interval = setInterval(loadUsers, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -52,11 +52,24 @@ function UserManagement() {
     setUsers(updatedUsers);
   };
 
+  /* ================= IMAGE UPLOAD ================= */
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setNewUser({ ...newUser, profileImage: reader.result });
+    };
+    reader.readAsDataURL(file);
+  };
+
   /* ================= ADD USER ================= */
 
   const handleAddUser = () => {
-    if (!newUser.fullName || !newUser.email) {
-      alert("Please fill all fields");
+    if (!newUser.fullName || !newUser.email || !newUser.password) {
+      alert("Please fill all required fields");
       return;
     }
 
@@ -74,7 +87,7 @@ function UserManagement() {
       fullName: newUser.fullName,
       email: newUser.email,
       role: newUser.role,
-      password: "123456",
+      password: newUser.password,
       profileImage: newUser.profileImage || "/default-profile.png",
       blocked: false,
     };
@@ -88,6 +101,7 @@ function UserManagement() {
       email: "",
       role: "citizen",
       profileImage: "",
+      password: "",
     });
   };
 
@@ -95,45 +109,42 @@ function UserManagement() {
 
   const deleteUser = (email) => {
     if (!window.confirm("Delete this user?")) return;
-
-    const updated = users.filter((user) => user.email !== email);
-    updateStorage(updated);
+    updateStorage(users.filter((u) => u.email !== email));
   };
 
   /* ================= BLOCK ================= */
 
   const toggleBlock = (email) => {
-    const updated = users.map((user) =>
-      user.email === email
-        ? { ...user, blocked: !user.blocked }
-        : user
+    updateStorage(
+      users.map((u) =>
+        u.email === email ? { ...u, blocked: !u.blocked } : u
+      )
     );
-    updateStorage(updated);
   };
 
   /* ================= CHANGE ROLE ================= */
 
   const changeRole = (email, newRole) => {
-    const updated = users.map((user) =>
-      user.email === email
-        ? { ...user, role: newRole }
-        : user
+    updateStorage(
+      users.map((u) =>
+        u.email === email ? { ...u, role: newRole } : u
+      )
     );
-    updateStorage(updated);
   };
 
   /* ================= FILTER ================= */
 
   const filteredUsers = users
-    .filter((user) =>
-      user.fullName?.toLowerCase().includes(search.toLowerCase())
+    .filter((u) =>
+      u.fullName?.toLowerCase().includes(search.toLowerCase())
     )
-    .filter((user) =>
-      filterRole === "all" ? true : user.role === filterRole
+    .filter((u) =>
+      filterRole === "all" ? true : u.role === filterRole
     );
 
   return (
     <div className="user-management">
+
       <div className="header-row">
         <h2>User Management</h2>
         <button className="add-btn" onClick={() => setShowModal(true)}>
@@ -161,86 +172,74 @@ function UserManagement() {
         </select>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Profile</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+      <div className="card-container">
+        {filteredUsers.map((user) => (
+          <div className="user-card" key={user.email}>
+            <img
+              src={user.profileImage}
+              alt="profile"
+              className="card-img"
+            />
+            <h3>{user.fullName}</h3>
+            <p className="email">{user.email}</p>
 
-        <tbody>
-          {filteredUsers.length === 0 ? (
-            <tr>
-              <td colSpan="6" style={{ textAlign: "center" }}>
-                No Users Found
-              </td>
-            </tr>
-          ) : (
-            filteredUsers.map((user) => (
-              <tr key={user.email}>
-                <td>
-                  <img
-                    src={user.profileImage || "/default-profile.png"}
-                    alt="profile"
-                    className="user-img"
-                  />
-                </td>
+            <select
+              value={user.role}
+              onChange={(e) =>
+                changeRole(user.email, e.target.value)
+              }
+              className="role-select"
+            >
+              <option value="citizen">Citizen</option>
+              <option value="observer">Observer</option>
+              <option value="analyst">Analyst</option>
+              <option value="admin">Admin</option>
+            </select>
 
-                <td>{user.fullName}</td>
-                <td>{user.email}</td>
+            <p className={user.blocked ? "blocked" : "active"}>
+              {user.blocked ? "Blocked" : "Active"}
+            </p>
 
-                <td>
-                  <select
-                    value={user.role}
-                    onChange={(e) =>
-                      changeRole(user.email, e.target.value)
-                    }
-                  >
-                    <option value="citizen">Citizen</option>
-                    <option value="observer">Observer</option>
-                    <option value="analyst">Analyst</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </td>
+            <div className="card-buttons">
+              <button
+                className="block-btn"
+                onClick={() => toggleBlock(user.email)}
+              >
+                {user.blocked ? "Unblock" : "Block"}
+              </button>
 
-                <td>
-                  {user.blocked ? (
-                    <span className="blocked">Blocked</span>
-                  ) : (
-                    <span className="active">Active</span>
-                  )}
-                </td>
+              <button
+                className="delete-btn"
+                onClick={() => deleteUser(user.email)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
 
-                <td>
-                  <button
-                    className="block-btn"
-                    onClick={() => toggleBlock(user.email)}
-                  >
-                    {user.blocked ? "Unblock" : "Block"}
-                  </button>
-
-                  <button
-                    className="delete-btn"
-                    onClick={() => deleteUser(user.email)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+      {/* ================= MODAL ================= */}
 
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
             <h3>Add New User</h3>
+
+            {/* Image Preview */}
+            {newUser.profileImage && (
+              <img
+                src={newUser.profileImage}
+                alt="preview"
+                className="preview-img"
+              />
+            )}
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+            />
 
             <input
               type="text"
@@ -257,6 +256,15 @@ function UserManagement() {
               value={newUser.email}
               onChange={(e) =>
                 setNewUser({ ...newUser, email: e.target.value })
+              }
+            />
+
+            <input
+              type="password"
+              placeholder="Default Password"
+              value={newUser.password}
+              onChange={(e) =>
+                setNewUser({ ...newUser, password: e.target.value })
               }
             />
 

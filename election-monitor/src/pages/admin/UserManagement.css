@@ -42,7 +42,14 @@
   transform: translateY(-2px);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
 }
-
+.preview-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 10px auto;
+  border: 2px solid #1565c0;
+}
 /* ============================= */
 /* CONTROLS */
 /* ============================= */
@@ -70,61 +77,66 @@
 }
 
 /* ============================= */
-/* TABLE */
+/* CARD GRID */
 /* ============================= */
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  border-radius: 12px;
-  overflow: hidden;
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 22px;
+  margin-top: 10px;
 }
 
-thead {
-  background: linear-gradient(to right, #1565c0, #1976d2);
-  color: white;
-}
-
-th {
-  padding: 14px;
-  font-weight: 500;
-  font-size: 14px;
-}
-
-td {
-  padding: 14px;
+.user-card {
+  background: #ffffff;
+  padding: 25px 20px;
+  border-radius: 16px;
   text-align: center;
-  border-bottom: 1px solid #eef2f7;
-}
-
-tbody tr {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   transition: 0.3s ease;
+  position: relative;
 }
 
-tbody tr:hover {
-  background: #f5f9ff;
+.user-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.15);
 }
 
 /* ============================= */
 /* PROFILE IMAGE */
 /* ============================= */
 
-.user-img {
-  width: 42px;
-  height: 42px;
+.card-img {
+  width: 85px;
+  height: 85px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #1565c0;
+  border: 3px solid #1565c0;
+  margin-bottom: 12px;
 }
 
 /* ============================= */
-/* ROLE DROPDOWN */
+/* USER INFO */
 /* ============================= */
 
-td select {
-  padding: 6px 8px;
+.user-card h3 {
+  font-size: 17px;
+  color: #0d47a1;
+  margin-bottom: 6px;
+}
+
+.email {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+  word-break: break-word;
+}
+
+.role-select {
+  padding: 6px 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
+  margin-bottom: 8px;
   cursor: pointer;
 }
 
@@ -135,26 +147,35 @@ td select {
 .active {
   color: #2e7d32;
   font-weight: 600;
+  margin-bottom: 0px;
 }
 
 .blocked {
   color: #d32f2f;
   font-weight: 600;
+  margin-bottom: 10px;
 }
 
 /* ============================= */
-/* BUTTONS */
+/* CARD BUTTONS */
 /* ============================= */
+
+.card-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+}
 
 .block-btn {
   background: #ff9800;
   color: white;
   border: none;
-  padding: 6px 12px;
-  margin-right: 6px;
+  padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
   transition: 0.2s ease;
+  font-size: 13px;
 }
 
 .block-btn:hover {
@@ -166,15 +187,23 @@ td select {
   background: #e53935;
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
   transition: 0.2s ease;
+  font-size: 13px;
 }
 
 .delete-btn:hover {
   background: #c62828;
   transform: scale(1.05);
+}
+
+.no-users {
+  text-align: center;
+  width: 100%;
+  font-weight: 500;
+  color: #777;
 }
 
 /* ============================= */
@@ -278,11 +307,11 @@ td select {
     flex-direction: column;
   }
 
-  table {
-    font-size: 13px;
-  }
-
   .modal {
     width: 90%;
+  }
+
+  .card-container {
+    grid-template-columns: 1fr;
   }
 }
