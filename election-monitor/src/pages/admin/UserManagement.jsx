@@ -15,8 +15,6 @@ function UserManagement() {
     password: "",
   });
 
-  /* ================= LOAD USERS ================= */
-
   useEffect(() => {
     const loadUsers = () => {
       const systemData =
@@ -26,7 +24,6 @@ function UserManagement() {
           reports: [],
           notifications: [],
         };
-
       setUsers(systemData.users || []);
     };
 
@@ -34,8 +31,6 @@ function UserManagement() {
     const interval = setInterval(loadUsers, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  /* ================= UPDATE STORAGE ================= */
 
   const updateStorage = (updatedUsers) => {
     const systemData =
@@ -47,25 +42,20 @@ function UserManagement() {
       };
 
     systemData.users = updatedUsers;
-
     localStorage.setItem("electionSystem", JSON.stringify(systemData));
     setUsers(updatedUsers);
   };
-
-  /* ================= IMAGE UPLOAD ================= */
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setNewUser({ ...newUser, profileImage: reader.result });
-    };
-    reader.readAsDataURL(file);
+    const imageUrl = URL.createObjectURL(file);
+    setNewUser({
+      ...newUser,
+      profileImage: imageUrl,
+    });
   };
-
-  /* ================= ADD USER ================= */
 
   const handleAddUser = () => {
     if (!newUser.fullName || !newUser.email || !newUser.password) {
@@ -88,7 +78,7 @@ function UserManagement() {
       email: newUser.email,
       role: newUser.role,
       password: newUser.password,
-      profileImage: newUser.profileImage || "/default-profile.png",
+      profileImage: "/default-profile.png",
       blocked: false,
     };
 
@@ -105,14 +95,10 @@ function UserManagement() {
     });
   };
 
-  /* ================= DELETE ================= */
-
   const deleteUser = (email) => {
     if (!window.confirm("Delete this user?")) return;
     updateStorage(users.filter((u) => u.email !== email));
   };
-
-  /* ================= BLOCK ================= */
 
   const toggleBlock = (email) => {
     updateStorage(
@@ -122,8 +108,6 @@ function UserManagement() {
     );
   };
 
-  /* ================= CHANGE ROLE ================= */
-
   const changeRole = (email, newRole) => {
     updateStorage(
       users.map((u) =>
@@ -131,8 +115,6 @@ function UserManagement() {
       )
     );
   };
-
-  /* ================= FILTER ================= */
 
   const filteredUsers = users
     .filter((u) =>
@@ -144,7 +126,6 @@ function UserManagement() {
 
   return (
     <div className="user-management">
-
       <div className="header-row">
         <h2>User Management</h2>
         <button className="add-btn" onClick={() => setShowModal(true)}>
@@ -219,14 +200,11 @@ function UserManagement() {
         ))}
       </div>
 
-      {/* ================= MODAL ================= */}
-
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
             <h3>Add New User</h3>
 
-            {/* Image Preview */}
             {newUser.profileImage && (
               <img
                 src={newUser.profileImage}
