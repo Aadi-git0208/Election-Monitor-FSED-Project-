@@ -5,6 +5,7 @@ import ElectionManagement from "./ElectionManagement";
 import ReportManagement from "./ReportManagement";
 import SecurityPanel from "./SecurityPanel";
 import AnalyticsSummary from "./AnalyticsSummary";
+import ProfileUpdateModal from "../../components/common/ProfileUpdateModal";
 import {
   BarChart,
   Bar,
@@ -22,6 +23,7 @@ function AdminDashboard() {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const [data, setData] = useState({
     totalCitizens: 0,
@@ -31,6 +33,7 @@ function AdminDashboard() {
     totalReports: 0,
     totalElections: 0,
     reportsData: [],
+    observerSubmissions: [],
   });
 
   const currentUser =
@@ -50,6 +53,8 @@ function AdminDashboard() {
       const users = systemData.users || [];
       const reports = systemData.reports || [];
       const elections = systemData.elections || [];
+      const observerSubmissions =
+        JSON.parse(localStorage.getItem("observer_submissions")) || [];
 
       const citizens = users.filter((u) => u.role === "citizen");
       const observers = users.filter((u) => u.role === "observer");
@@ -64,6 +69,7 @@ function AdminDashboard() {
         totalReports: reports.length,
         totalElections: elections.length,
         reportsData: reports,
+        observerSubmissions,
       });
     };
 
@@ -122,6 +128,13 @@ function AdminDashboard() {
           <span className="admin-name">
             {currentUser?.fullName || currentUser?.name || "Admin"}
           </span>
+
+          <button
+            className="admin-profile-update-btn"
+            onClick={() => setShowProfileModal(true)}
+          >
+            Update Profile
+          </button>
 
           <button
             className="logout-btn"
@@ -214,6 +227,11 @@ function AdminDashboard() {
                   <h2>{data.totalElections}</h2>
                 </div>
 
+                <div className="card">
+                  <h3>Observer Summaries</h3>
+                  <h2>{data.observerSubmissions.length}</h2>
+                </div>
+
               </div>
 
               <div className="graph-section">
@@ -256,6 +274,39 @@ function AdminDashboard() {
                 </div>
 
               </div>
+
+              <div className="observer-submissions-card">
+                <div className="observer-submissions-header">
+                  <h3>Recent Observer Submissions</h3>
+                  <span>{data.observerSubmissions.length} total</span>
+                </div>
+
+                {data.observerSubmissions.length === 0 ? (
+                  <p className="observer-submissions-empty">
+                    No observer summaries submitted yet.
+                  </p>
+                ) : (
+                  <div className="observer-submissions-list">
+                    {data.observerSubmissions.slice(0, 6).map((submission) => (
+                      <div key={submission.id} className="observer-submission-item">
+                        <div>
+                          <h4>{submission.observer || "Observer"}</h4>
+                          <p>
+                            Submitted: {new Date(submission.submittedAt).toLocaleString()}
+                          </p>
+                        </div>
+
+                        <div className="observer-submission-metrics">
+                          <span>Elections: {submission.summary?.elections || 0}</span>
+                          <span>Reports: {submission.summary?.reports || 0}</span>
+                          <span>Resolved: {submission.summary?.resolved || 0}</span>
+                          <span>Rejected: {submission.summary?.rejected || 0}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
           )}
 
@@ -267,6 +318,10 @@ function AdminDashboard() {
 
         </div>
       </div>
+
+      {showProfileModal && (
+        <ProfileUpdateModal onClose={() => setShowProfileModal(false)} />
+      )}
     </div>
   );
 }

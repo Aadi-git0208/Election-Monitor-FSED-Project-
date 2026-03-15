@@ -76,6 +76,7 @@ function ReportIssue() {
     const newReport = {
       id: Date.now(),
       userId: currentUser?.id || null,
+      email: currentUser?.email || "",
       userName: currentUser?.fullName || currentUser?.name || "Citizen",
       title,
       description,
@@ -103,7 +104,7 @@ function ReportIssue() {
   };
 
   const userReports = reports.filter(
-    (r) => r.userId === currentUser?.id || !r.userId
+    (r) => r.userId === currentUser?.id || r.email === currentUser?.email
   );
 
   return (
@@ -172,6 +173,24 @@ function ReportIssue() {
 
             {report.adminComment && (
               <p><strong>Admin Comment:</strong> {report.adminComment}</p>
+            )}
+
+            {report.observerActionBy && (
+              <p>
+                <strong>Observer Updated By:</strong> {report.observerActionBy}
+              </p>
+            )}
+
+            {report.observerActionAt && (
+              <p>
+                <strong>Observer Updated At:</strong> {report.observerActionAt}
+              </p>
+            )}
+
+            {report.observerNote && (
+              <p>
+                <strong>Observer Note:</strong> {report.observerNote}
+              </p>
             )}
 
             {report.image && (

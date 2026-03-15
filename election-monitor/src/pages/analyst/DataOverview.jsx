@@ -2,43 +2,122 @@ import React, { useEffect, useState } from "react";
 import "./DataOverview.css";
 
 const DataOverview = () => {
-
-  const [totalVotes, setTotalVotes] = useState(0);
-  const [participation, setParticipation] = useState(0);
-  const [regionStats, setRegionStats] = useState([]);
+  const [reportStats, setReportStats] = useState({
+    total: 0,
+    pending: 0,
+    assigned: 0,
+    resolved: 0,
+    rejected: 0,
+  });
+  const [electionStats, setElectionStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+  });
+  const [reportsPerDay, setReportsPerDay] = useState([]);
 
   useEffect(() => {
-    const votesData = JSON.parse(localStorage.getItem("votesData")) || [];
-    const totalVoters = Number(localStorage.getItem("totalVoters")) || 1;
+    const loadData = () => {
+      const systemData =
+        JSON.parse(localStorage.getItem("electionSystem")) || {
+          users: [],
+          elections: [],
+          reports: [],
+          notifications: [],
+        };
 
-    const total = votesData.reduce((sum, item) => sum + item.votes, 0);
+      const reports = systemData.reports || [];
+      const elections = systemData.elections || [];
 
-    setTotalVotes(total);
-    setParticipation(((total / totalVoters) * 100).toFixed(2));
-    setRegionStats(votesData);
+      setReportStats({
+        total: reports.length,
+        pending: reports.filter((item) => item.status === "Pending").length,
+        assigned: reports.filter((item) => item.status === "Assigned").length,
+        resolved: reports.filter((item) => item.status === "Resolved").length,
+        rejected: reports.filter((item) => item.status === "Rejected").length,
+      });
 
+      setElectionStats({
+        total: elections.length,
+        active: elections.filter((item) => item.active).length,
+        inactive: elections.filter((item) => !item.active).length,
+      });
+
+      const groupedByDate = reports.reduce((acc, report) => {
+        const key = report.date || "Unknown";
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+
+      setReportsPerDay(
+        Object.keys(groupedByDate).map((date) => ({
+          date,
+          count: groupedByDate[date],
+        }))
+      );
+    };
+
+    loadData();
+    const interval = setInterval(loadData, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="overview-wrapper">
+    <div className="overview-wrapper analyst-module-card">
+      <h2>Data Overview</h2>
 
-      <div className="overview-card">
-        <h3>Total Votes</h3>
-        <p>{totalVotes}</p>
+      <div className="overview-grid">
+        <div className="overview-card">
+          <h3>Total Reports</h3>
+          <p>{reportStats.total}</p>
+        </div>
+
+        <div className="overview-card">
+          <h3>Pending Reports</h3>
+          <p>{reportStats.pending}</p>
+        </div>
+
+        <div className="overview-card">
+          <h3>Assigned Reports</h3>
+          <p>{reportStats.assigned}</p>
+        </div>
+
+        <div className="overview-card">
+          <h3>Resolved Reports</h3>
+          <p>{reportStats.resolved}</p>
+        </div>
+
+        <div className="overview-card">
+          <h3>Rejected Reports</h3>
+          <p>{reportStats.rejected}</p>
+        </div>
+
+        <div className="overview-card">
+          <h3>Active Elections</h3>
+          <p>{electionStats.active}</p>
+        </div>
       </div>
 
-      <div className="overview-card">
-        <h3>Participation %</h3>
-        <p>{participation}%</p>
-      </div>
+      <div className="overview-breakdown">
+        <div className="overview-breakdown-card">
+          <h3>Election Breakdown</h3>
+          <p>Total Elections: {electionStats.total}</p>
+          <p>Active Elections: {electionStats.active}</p>
+          <p>Inactive Elections: {electionStats.inactive}</p>
+        </div>
 
-      <div className="overview-card">
-        <h3>Region-wise Stats</h3>
-        {regionStats.map((region, index) => (
-          <p key={index}>
-            {region.region}: {region.votes}
-          </p>
-        ))}
+        <div className="overview-breakdown-card">
+          <h3>Reports Submitted By Date</h3>
+          {reportsPerDay.length === 0 ? (
+            <p>No report data available.</p>
+          ) : (
+            reportsPerDay.map((item) => (
+              <p key={item.date}>
+                {item.date}: {item.count}
+              </p>
+            ))
+          )}
+        </div>
       </div>
 
     </div>

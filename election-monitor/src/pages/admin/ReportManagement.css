@@ -10,6 +10,13 @@
   color: #0d47a1;
 }
 
+.observer-assignment-hint {
+  margin: -6px 0 14px;
+  color: #4f5f7a;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 .report-controls {
   margin-bottom: 20px;
 }
@@ -39,6 +46,16 @@ th, td {
   text-align: center;
 }
 
+.report-table-wrapper input,
+.report-table-wrapper select {
+  width: 100%;
+  min-width: 170px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+}
+
 .evidence-img {
   width: 80px;
   border-radius: 6px;
@@ -53,6 +70,11 @@ th, td {
 .status.Pending {
   background: #fff3cd;
   color: #856404;
+}
+
+.status.Assigned {
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
 .status.Resolved {

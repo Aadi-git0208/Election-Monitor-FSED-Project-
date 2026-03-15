@@ -65,6 +65,16 @@
   background: #c62828;
 }
 
+.admin-profile-update-btn {
+  padding: 6px 14px;
+  background: #e3f2fd;
+  border: none;
+  color: #0d47a1;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
 /* ============================= */
 /* BODY WRAPPER */
 /* ============================= */
@@ -157,7 +167,7 @@
 
 .card-container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 25px;
   margin-bottom: 50px;
 }
@@ -216,6 +226,83 @@
   font-size: 18px;
 }
 
+.observer-submissions-card {
+  margin-top: 25px;
+  background: white;
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+.observer-submissions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.observer-submissions-header h3 {
+  margin: 0;
+  color: #0d47a1;
+  font-size: 20px;
+}
+
+.observer-submissions-header span {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.observer-submissions-empty {
+  margin: 0;
+  color: #64748b;
+}
+
+.observer-submissions-list {
+  display: grid;
+  gap: 14px;
+}
+
+.observer-submission-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: #f8fbff;
+  border: 1px solid #dde9f9;
+}
+
+.observer-submission-item h4 {
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.observer-submission-item p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.observer-submission-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.observer-submission-metrics span {
+  background: #e8f1ff;
+  color: #0d47a1;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
 /* ============================= */
 /* RESPONSIVE */
 /* ============================= */
@@ -263,5 +350,15 @@
   .profile-pic {
     width: 35px;
     height: 35px;
+  }
+
+  .observer-submission-item,
+  .observer-submissions-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .observer-submission-metrics {
+    justify-content: flex-start;
   }
 }

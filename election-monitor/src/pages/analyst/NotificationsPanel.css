@@ -1,7 +1,69 @@
-.notification-container {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+.notification-container h2 {
+  margin-top: 0;
+  margin-bottom: 18px;
+}
+
+.analyst-notification-list {
+  display: grid;
+  gap: 12px;
+}
+
+.analyst-notification-card {
+  background: #f8fbff;
+  border: 1px solid #dbe9ff;
+  border-radius: 10px;
+  padding: 14px;
+  position: relative;
+}
+
+.analyst-notification-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.analyst-notification-header h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.analyst-notification-header span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.analyst-notification-card p {
+  margin: 0;
+  color: #334155;
+  padding-right: 70px;
+}
+
+.analyst-notification-tag {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: white;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #1565c0;
+}
+
+.analyst-notification-tag.alert {
+  background: #ef6c00;
+}
+
+.analyst-notification-tag.critical {
+  background: #c62828;
+}
+
+.analyst-notification-tag.update,
+.analyst-notification-tag.report,
+.analyst-notification-tag.election,
+.analyst-notification-tag.announcement {
+  background: #1565c0;
 }

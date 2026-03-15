@@ -5,11 +5,12 @@ import ReportIssue from "./ReportIssue";
 import MyReports from "./MyReports";
 import CivicDiscussionForum from "./CivicDiscussionForum";
 import Notifications from "./Notification";
-import Profile from "./Profile";
+import ProfileUpdateModal from "../../components/common/ProfileUpdateModal";
 
 function CitizenDashboard() {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [systemData, setSystemData] = useState({
     users: [],
     elections: [],
@@ -44,8 +45,13 @@ function CitizenDashboard() {
   );
 
   const userReports = systemData.reports.filter(
-    (r) => r.userId === currentUser?.id || !r.userId
+    (r) => r.userId === currentUser?.id || r.email === currentUser?.email
   );
+
+  const resolvedReports = userReports.filter((report) => report.status === "Resolved");
+  const rejectedReports = userReports.filter((report) => report.status === "Rejected");
+  const latestReport =
+    userReports.length > 0 ? userReports[userReports.length - 1] : null;
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
@@ -82,6 +88,13 @@ function CitizenDashboard() {
           <span className="admin-name">
             {currentUser?.fullName || currentUser?.name || "Citizen"}
           </span>
+
+          <button
+            className="citizen-profile-update-btn"
+            onClick={() => setShowProfileModal(true)}
+          >
+            Update Profile
+          </button>
 
           <button className="logout-btn" onClick={handleLogout}>
             Logout
@@ -129,12 +142,6 @@ function CitizenDashboard() {
           >
             Notification
           </p>
-           <p
-            className={activeSection === "profile" ? "active-link" : ""}
-            onClick={() => setActiveSection("profile")}
-          >
-            Profile
-          </p>
         </div>
 
         <div className="citizen-content">
@@ -176,6 +183,16 @@ function CitizenDashboard() {
                     <h3>{userReports.length}</h3>
                     <p>Total Reports Submitted</p>
                   </div>
+
+                  <div className="stat-box">
+                    <h3>{resolvedReports.length}</h3>
+                    <p>Observer Verified</p>
+                  </div>
+
+                  <div className="stat-box">
+                    <h3>{rejectedReports.length}</h3>
+                    <p>Observer Rejected</p>
+                  </div>
                 </div>
               </div>
 
@@ -193,13 +210,18 @@ function CitizenDashboard() {
 
                 <div className="info-card">
                   <h3>📝 Recent Report</h3>
-                  {userReports.length > 0 ? (
-                    <p>
-                      {
-                        userReports[userReports.length - 1]
-                          .title
-                      }
-                    </p>
+                  {latestReport ? (
+                    <>
+                      <p>{latestReport.title}</p>
+                      <p>
+                        <strong>Status:</strong> {latestReport.status || "Pending"}
+                      </p>
+                      {latestReport.observerActionBy && (
+                        <p>
+                          <strong>Observer:</strong> {latestReport.observerActionBy}
+                        </p>
+                      )}
+                    </>
                   ) : (
                     <p>No reports submitted yet</p>
                   )}
@@ -218,9 +240,12 @@ function CitizenDashboard() {
           {activeSection === "myreports" && <MyReports />}
           {activeSection === "civicforum" && <CivicDiscussionForum />}
           {activeSection === "notifications" && <Notifications />}
-          {activeSection === "profile" && <Profile />}
         </div>
       </div>
+
+      {showProfileModal && (
+        <ProfileUpdateModal onClose={() => setShowProfileModal(false)} />
+      )}
     </div>
   );
 }

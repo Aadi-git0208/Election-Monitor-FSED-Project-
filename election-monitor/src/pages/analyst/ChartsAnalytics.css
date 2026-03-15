@@ -1,7 +1,28 @@
-.charts-container {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+.charts-container h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.chart-card {
+  background: #f8fbff;
+  border: 1px solid #dbe9ff;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.chart-card h3 {
+  margin-top: 0;
+  color: #0d47a1;
+}
+
+@media (max-width: 1000px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
 }

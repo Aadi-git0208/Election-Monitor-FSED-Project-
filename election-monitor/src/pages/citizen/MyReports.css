@@ -35,6 +35,10 @@
   background: orange;
 }
 
+.status.assigned {
+  background: #2563eb;
+}
+
 .status.resolved {
   background: green;
 }

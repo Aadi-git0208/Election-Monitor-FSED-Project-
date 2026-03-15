@@ -1,49 +1,143 @@
-import React from "react";
+import React, { useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
 import "./AnalystDashboard.css";
+import ProfileUpdateModal from "../../components/common/ProfileUpdateModal";
 
 const AnalystLayout = () => {
-  return (
-    <div className="analyst-page">
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
-      {/* Sidebar */}
-      <div className="analyst-sidebar">
-        <div className="sidebar-header">
-          <h3>📊 Analyst Panel</h3>
+  const currentUser =
+    JSON.parse(localStorage.getItem("currentUser")) ||
+    JSON.parse(sessionStorage.getItem("currentUser")) ||
+    {};
+
+  const handleLogout = () => {
+    localStorage.removeItem("currentUser");
+    sessionStorage.removeItem("currentUser");
+    window.location.href = "/";
+  };
+
+  return (
+    <div className="analyst-layout">
+      <div className="analyst-navbar">
+        <button
+          className="analyst-menu-btn"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        >
+          ☰
+        </button>
+
+        <h2>VOTEGUARD</h2>
+
+        <div className="analyst-user-section">
+          <img
+            src={
+              currentUser?.profileImage ||
+              currentUser?.profilePic ||
+              currentUser?.image ||
+              "/default-profile.png"
+            }
+            alt="profile"
+            className="analyst-profile-pic"
+          />
+
+          <span className="analyst-name">
+            {currentUser?.fullName || currentUser?.name || "Analyst"}
+          </span>
+
+          <button
+            className="analyst-profile-update-btn"
+            onClick={() => setShowProfileModal(true)}
+          >
+            Update Profile
+          </button>
+
+          <button className="analyst-logout-btn" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <div className="analyst-body">
+        <div className={`analyst-sidebar ${sidebarOpen ? "open" : "closed"}`}>
+          <ul>
+            <li>
+              <NavLink
+                to="dashboard"
+                className={({ isActive }) =>
+                  `analyst-sidebar-link ${isActive ? "active" : ""}`
+                }
+              >
+                Dashboard Overview
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink
+                to="data-overview"
+                className={({ isActive }) =>
+                  `analyst-sidebar-link ${isActive ? "active" : ""}`
+                }
+              >
+                Data Overview
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink
+                to="charts"
+                className={({ isActive }) =>
+                  `analyst-sidebar-link ${isActive ? "active" : ""}`
+                }
+              >
+                Charts Analytics
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink
+                to="predictive"
+                className={({ isActive }) =>
+                  `analyst-sidebar-link ${isActive ? "active" : ""}`
+                }
+              >
+                Predictive Analysis
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink
+                to="reports"
+                className={({ isActive }) =>
+                  `analyst-sidebar-link ${isActive ? "active" : ""}`
+                }
+              >
+                Export Reports
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink
+                to="notifications"
+                className={({ isActive }) =>
+                  `analyst-sidebar-link ${isActive ? "active" : ""}`
+                }
+              >
+                Notifications
+              </NavLink>
+            </li>
+          </ul>
         </div>
 
-        <nav className="sidebar-menu">
-          <NavLink to="dashboard" className="sidebar-link">
-            🏠 Dashboard
-          </NavLink>
-
-          <NavLink to="data-overview" className="sidebar-link">
-            📋 Data Overview
-          </NavLink>
-
-          <NavLink to="charts" className="sidebar-link">
-            📈 Charts & Analytics
-          </NavLink>
-
-          <NavLink to="predictive" className="sidebar-link">
-            🔮 Predictive Analysis
-          </NavLink>
-
-          <NavLink to="reports" className="sidebar-link">
-            📄 Reports
-          </NavLink>
-
-          <NavLink to="notifications" className="sidebar-link">
-            🔔 Notifications
-          </NavLink>
-        </nav>
+        <div className={`analyst-container ${sidebarOpen ? "shift" : ""}`}>
+          <Outlet />
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="analyst-content">
-        <Outlet />
-      </div>
-
+      {showProfileModal && (
+        <ProfileUpdateModal onClose={() => setShowProfileModal(false)} />
+      )}
     </div>
   );
 };

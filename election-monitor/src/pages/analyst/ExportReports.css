@@ -1,14 +1,43 @@
-.export-container {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
+.export-container h2 {
+  margin-top: 0;
+  margin-bottom: 18px;
 }
 
-.export-container button {
-  padding: 10px 18px;
+.export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.export-actions button {
   border: none;
-  background: #2b4a86;
+  background: #1565c0;
   color: white;
   border-radius: 8px;
+  padding: 10px 14px;
   cursor: pointer;
+  font-weight: 600;
+}
+
+.export-actions button:hover {
+  background: #0d47a1;
+}
+
+.export-summary {
+  background: #f8fbff;
+  border: 1px solid #dbe9ff;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.export-summary p {
+  margin: 9px 0;
+  color: #334155;
+}
+
+.export-message {
+  margin-top: 14px;
+  color: #0d47a1;
+  font-weight: 600;
 }

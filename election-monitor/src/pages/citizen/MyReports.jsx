@@ -40,6 +40,7 @@ function MyReports() {
   }, [currentUser]);
 
   const getStatusClass = (status) => {
+    if (status === "Assigned") return "status assigned";
     if (status === "Resolved") return "status resolved";
     if (status === "Rejected") return "status rejected";
     return "status pending";
@@ -85,6 +86,19 @@ function MyReports() {
               <strong>Admin Response:</strong>{" "}
               {report.adminComment || "No response yet"}
             </div>
+
+            {report.observerActionBy && (
+              <div className="admin-response">
+                <strong>Observer Update:</strong> {report.observerActionBy}
+                {report.observerActionAt ? ` (${report.observerActionAt})` : ""}
+              </div>
+            )}
+
+            {report.observerNote && (
+              <div className="admin-response">
+                <strong>Observer Note:</strong> {report.observerNote}
+              </div>
+            )}
 
             <div className="report-date">
               <strong>Date Submitted:</strong>{" "}
