@@ -16,6 +16,8 @@ public class UserController {
     @Autowired
     private UserService service;
 
+    // ================= ADMIN =================
+
     // GET ALL USERS
     @GetMapping
     public List<User> getAllUsers() {
@@ -32,5 +34,19 @@ public class UserController {
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
         service.deleteUser(id);
+    }
+
+    // ================= CITIZEN =================
+
+    // REGISTER
+    @PostMapping("/register")
+    public User register(@RequestBody User user) {
+        return service.register(user);
+    }
+
+    // LOGIN
+    @PostMapping("/login")
+    public User login(@RequestBody User user) {
+        return service.login(user.getEmail(), user.getPassword());
     }
 }

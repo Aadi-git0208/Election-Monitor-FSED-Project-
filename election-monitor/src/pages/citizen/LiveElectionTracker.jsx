@@ -6,29 +6,15 @@ function LiveElectionTracker() {
   const [activeElections, setActiveElections] = useState([]);
   const [timeLeft, setTimeLeft] = useState({});
 
+  // 🔥 FETCH FROM BACKEND
   useEffect(() => {
-    const loadElections = () => {
-      const systemData =
-        JSON.parse(localStorage.getItem("electionSystem")) || {
-          users: [],
-          elections: [],
-          reports: [],
-          notifications: [],
-        };
-
-      const active = (systemData.elections || []).filter(
-        (e) => e.active === true
-      );
-
-      setActiveElections(active);
-    };
-
-    loadElections();
-
-    const interval = setInterval(loadElections, 1000);
-    return () => clearInterval(interval);
+    fetch("http://localhost:8080/api/elections/active")
+      .then((res) => res.json())
+      .then((data) => setActiveElections(data))
+      .catch((err) => console.error(err));
   }, []);
 
+  // ⏳ TIMER (same logic)
   useEffect(() => {
     const timer = setInterval(() => {
       const updatedTimes = {};
@@ -52,7 +38,6 @@ function LiveElectionTracker() {
       });
 
       setTimeLeft(updatedTimes);
-
     }, 1000);
 
     return () => clearInterval(timer);

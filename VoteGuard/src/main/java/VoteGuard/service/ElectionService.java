@@ -13,6 +13,8 @@ public class ElectionService {
     @Autowired
     private ElectionRepository repo;
 
+    // ================= ADMIN FEATURES =================
+
     public List<Election> getAll() {
         return repo.findAll();
     }
@@ -23,5 +25,11 @@ public class ElectionService {
 
     public void delete(Long id) {
         repo.deleteById(id);
+    }
+
+    // ================= CITIZEN FEATURES =================
+
+    public List<Election> getActiveElections() {
+        return repo.findByActiveTrue(); // 🔥 important
     }
 }

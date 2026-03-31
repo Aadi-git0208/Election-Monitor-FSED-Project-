@@ -1,6 +1,7 @@
 package VoteGuard.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 public class Election {
@@ -14,7 +15,11 @@ public class Election {
     private String endDate;
     private boolean active;
 
-    // GETTERS & SETTERS
+    // 🔥 NEW FIELD (important for frontend)
+    @ElementCollection
+    private List<String> candidates;
+
+    // ================= GETTERS & SETTERS =================
 
     public Long getId() {
         return id;
@@ -54,5 +59,13 @@ public class Election {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public List<String> getCandidates() {
+        return candidates;
+    }
+
+    public void setCandidates(List<String> candidates) {
+        this.candidates = candidates;
     }
 }

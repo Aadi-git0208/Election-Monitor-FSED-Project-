@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./ReportIssue.css";
 
 function ReportIssue() {
@@ -8,33 +8,12 @@ function ReportIssue() {
     JSON.parse(sessionStorage.getItem("currentUser")) ||
     {};
 
-  const getSystemData = () => {
-    return JSON.parse(localStorage.getItem("electionSystem")) || {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    };
-  };
-
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
   const [location, setLocation] = useState("");
-  const [reports, setReports] = useState([]);
 
-  useEffect(() => {
-    const loadReports = () => {
-      const systemData = getSystemData();
-      setReports(systemData.reports || []);
-    };
-
-    loadReports();
-
-    const interval = setInterval(loadReports, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
+  // 📸 IMAGE UPLOAD
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -46,6 +25,7 @@ function ReportIssue() {
     reader.readAsDataURL(file);
   };
 
+  // 📍 LOCATION
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported");
@@ -63,7 +43,8 @@ function ReportIssue() {
     );
   };
 
-  const handleSubmit = (e) => {
+  // 🔥 SUBMIT TO BACKEND
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title || !description) {
@@ -71,41 +52,41 @@ function ReportIssue() {
       return;
     }
 
-    const systemData = getSystemData();
+    try {
+      const res = await fetch("http://localhost:8080/api/reports/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userId: currentUser?.id,
+          email: currentUser?.email,
+          userName: currentUser?.fullName,
+          title,
+          description,
+          image,
+          location,
+          date: new Date().toLocaleDateString()
+        })
+      });
 
-    const newReport = {
-      id: Date.now(),
-      userId: currentUser?.id || null,
-      email: currentUser?.email || "",
-      userName: currentUser?.fullName || currentUser?.name || "Citizen",
-      title,
-      description,
-      image,
-      location,
-      status: "Pending",
-      assignedTo: "",
-      adminComment: "",
-      date: new Date().toLocaleDateString(),
-    };
+      if (res.ok) {
+        alert("Report Submitted Successfully!");
 
-    systemData.reports.push(newReport);
+        // reset form
+        setTitle("");
+        setDescription("");
+        setImage(null);
+        setLocation("");
+      } else {
+        alert("Failed to submit report");
+      }
 
-    localStorage.setItem(
-      "electionSystem",
-      JSON.stringify(systemData)
-    );
-
-    setTitle("");
-    setDescription("");
-    setImage(null);
-    setLocation("");
-
-    alert("Report Submitted Successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Error connecting to server");
+    }
   };
-
-  const userReports = reports.filter(
-    (r) => r.userId === currentUser?.id || r.email === currentUser?.email
-  );
 
   return (
     <div className="report-container">
@@ -143,65 +124,6 @@ function ReportIssue() {
           Submit Report
         </button>
       </form>
-
-      <div className="report-list">
-        <h3>Track Your Reports</h3>
-
-        {userReports.length === 0 && (
-          <p>No reports submitted yet.</p>
-        )}
-
-        {userReports.map((report) => (
-          <div key={report.id} className="report-card">
-            <h4>{report.title}</h4>
-            <p>{report.description}</p>
-
-            <p>
-              <strong>Status:</strong>{" "}
-              <span className={`status ${report.status}`}>
-                {report.status}
-              </span>
-            </p>
-
-            <p><strong>Date:</strong> {report.date}</p>
-
-            {report.location && <p>{report.location}</p>}
-
-            {report.assignedTo && (
-              <p><strong>Assigned To:</strong> {report.assignedTo}</p>
-            )}
-
-            {report.adminComment && (
-              <p><strong>Admin Comment:</strong> {report.adminComment}</p>
-            )}
-
-            {report.observerActionBy && (
-              <p>
-                <strong>Observer Updated By:</strong> {report.observerActionBy}
-              </p>
-            )}
-
-            {report.observerActionAt && (
-              <p>
-                <strong>Observer Updated At:</strong> {report.observerActionAt}
-              </p>
-            )}
-
-            {report.observerNote && (
-              <p>
-                <strong>Observer Note:</strong> {report.observerNote}
-              </p>
-            )}
-
-            {report.image && (
-              <img
-                src={report.image}
-                alt="uploaded"
-              />
-            )}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

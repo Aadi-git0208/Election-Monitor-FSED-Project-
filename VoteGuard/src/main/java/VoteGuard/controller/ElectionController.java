@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/elections")
 @CrossOrigin("*")
+@RequestMapping("/api/elections") // 🔥 IMPORTANT (add this)
 public class ElectionController {
 
     @Autowired
     private ElectionService service;
+
+    // ================= ADMIN =================
 
     // GET ALL
     @GetMapping
@@ -32,5 +34,12 @@ public class ElectionController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);
+    }
+
+    // ================= CITIZEN =================
+
+    @GetMapping("/active")
+    public List<Election> getActiveElections() {
+        return service.getActiveElections();
     }
 }

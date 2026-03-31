@@ -9,34 +9,14 @@ function MyReports() {
     JSON.parse(sessionStorage.getItem("currentUser")) ||
     null;
 
+  // 🔥 FETCH FROM BACKEND
   useEffect(() => {
-    const loadReports = () => {
-      const systemData =
-        JSON.parse(localStorage.getItem("electionSystem")) || {
-          users: [],
-          elections: [],
-          reports: [],
-          notifications: [],
-        };
+    if (!currentUser?.email) return;
 
-      if (!currentUser) {
-        setReports([]);
-        return;
-      }
-
-      const userReports = (systemData.reports || []).filter(
-        (report) =>
-          report.userId === currentUser.id ||
-          report.email === currentUser.email
-      );
-
-      setReports(userReports);
-    };
-
-    loadReports();
-
-    const interval = setInterval(loadReports, 1000);
-    return () => clearInterval(interval);
+    fetch(`http://localhost:8080/api/reports/user/${currentUser.email}`)
+      .then((res) => res.json())
+      .then((data) => setReports(data))
+      .catch((err) => console.error(err));
   }, [currentUser]);
 
   const getStatusClass = (status) => {
@@ -90,7 +70,9 @@ function MyReports() {
             {report.observerActionBy && (
               <div className="admin-response">
                 <strong>Observer Update:</strong> {report.observerActionBy}
-                {report.observerActionAt ? ` (${report.observerActionAt})` : ""}
+                {report.observerActionAt
+                  ? ` (${report.observerActionAt})`
+                  : ""}
               </div>
             )}
 

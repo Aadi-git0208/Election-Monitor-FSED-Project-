@@ -12,10 +12,14 @@ public class User {
     private String fullName;
     private String email;
     private String password;
-    private String role;
+
+    private String role; // admin / citizen
     private boolean blocked;
 
-    // GETTERS & SETTERS
+    private String voterId;
+    private String profileImage;
+
+    // ================= GETTERS & SETTERS =================
 
     public Long getId() {
         return id;
@@ -63,5 +67,23 @@ public class User {
 
     public void setBlocked(boolean blocked) {
         this.blocked = blocked;
+    }
+
+    // 🔥 NEW FIELDS
+
+    public String getVoterId() {
+        return voterId;
+    }
+
+    public void setVoterId(String voterId) {
+        this.voterId = voterId;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 }
