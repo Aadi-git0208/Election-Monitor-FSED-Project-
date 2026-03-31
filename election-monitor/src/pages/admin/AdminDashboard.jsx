@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "./AdminDashboard.css";
 import UserManagement from "./UserManagement";
 import ElectionManagement from "./ElectionManagement";
@@ -18,6 +18,16 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+
+const getUserImage = (user) => {
+  return (
+    user?.profileImage ||
+    user?.profilePic ||
+    user?.image ||
+    user?.avatar ||
+    "/default-profile.svg"
+  );
+};
 
 function AdminDashboard() {
 
@@ -40,44 +50,47 @@ function AdminDashboard() {
     JSON.parse(localStorage.getItem("currentUser")) ||
     JSON.parse(sessionStorage.getItem("currentUser"));
 
-  useEffect(() => {
-    const loadData = () => {
-      const systemData =
-        JSON.parse(localStorage.getItem("electionSystem")) || {
-          users: [],
-          elections: [],
-          reports: [],
-          notifications: [],
-        };
+  // ✅ BACKEND DATA LOAD
+  const loadData = useCallback(async () => {
+    try {
+      const usersRes = await fetch("http://localhost:8080/api/users");
+      const users = await usersRes.json();
 
-      const users = systemData.users || [];
-      const reports = systemData.reports || [];
-      const elections = systemData.elections || [];
+      const reportsRes = await fetch("http://localhost:8080/api/reports");
+      const reports = await reportsRes.json();
+
+      const electionsRes = await fetch("http://localhost:8080/api/elections");
+      const elections = await electionsRes.json();
+
       const observerSubmissions =
         JSON.parse(localStorage.getItem("observer_submissions")) || [];
 
       const citizens = users.filter((u) => u.role === "citizen");
       const observers = users.filter((u) => u.role === "observer");
-      const Admin = users.filter((u) => u.role === "admin");
-      const Analysts = users.filter((u) => u.role === "analyst");
+      const adminUsers = users.filter((u) => u.role === "admin");
+      const analysts = users.filter((u) => u.role === "analyst");
 
       setData({
         totalCitizens: citizens.length,
         totalObservers: observers.length,
-        totalAdmin: Admin.length,
-        totalAnalysts: Analysts.length,
+        totalAdmin: adminUsers.length,
+        totalAnalysts: analysts.length,
         totalReports: reports.length,
         totalElections: elections.length,
         reportsData: reports,
         observerSubmissions,
       });
-    };
 
-    loadData();
-
-    const interval = setInterval(loadData, 1000);
-    return () => clearInterval(interval);
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(loadData, 3000);
+    return () => clearInterval(interval);
+  }, [loadData]);
 
   const reportPerDay =
     data.reportsData?.reduce((acc, report) => {
@@ -94,11 +107,11 @@ function AdminDashboard() {
   const pieData = [
     { name: "Citizens", value: data.totalCitizens },
     { name: "Observers", value: data.totalObservers },
-    { name: "admin",value: data.totalAdmin},
+    { name: "Admin", value: data.totalAdmin },
     { name: "Analysts", value: data.totalAnalysts },
   ];
 
-  const COLORS = ["#0088FE", "#FF8042" ,"#FFBB28","#00C49F"];
+  const COLORS = ["#0088FE", "#FF8042", "#FFBB28", "#00C49F"];
 
   return (
     <div className="admin-layout">
@@ -115,18 +128,13 @@ function AdminDashboard() {
 
         <div className="user-section">
           <img
-            src={
-              currentUser?.profileImage ||
-              currentUser?.profilePic ||
-              currentUser?.image ||
-              "/default-profile.png"
-            }
+            src={getUserImage(currentUser)}
             alt="profile"
             className="profile-pic"
           />
 
           <span className="admin-name">
-            {currentUser?.fullName || currentUser?.name || "Admin"}
+            {currentUser?.fullName || "Admin"}
           </span>
 
           <button
@@ -153,49 +161,12 @@ function AdminDashboard() {
 
         <div className={`admin-sidebar ${sidebarOpen ? "open" : "closed"}`}>
           <ul>
-
-            <li
-              className={activeSection === "dashboard" ? "active" : ""}
-              onClick={() => setActiveSection("dashboard")}
-            >
-              Dashboard Overview
-            </li>
-
-            <li
-              className={activeSection === "users" ? "active" : ""}
-              onClick={() => setActiveSection("users")}
-            >
-              User Management
-            </li>
-
-            <li
-              className={activeSection === "elections" ? "active" : ""}
-              onClick={() => setActiveSection("elections")}
-            >
-              Election Management
-            </li>
-
-            <li
-              className={activeSection === "reports" ? "active" : ""}
-              onClick={() => setActiveSection("reports")}
-            >
-              Report Management
-            </li>
-
-            <li
-              className={activeSection === "security" ? "active" : ""}
-              onClick={() => setActiveSection("security")}
-            >
-              Security Panel
-            </li>
-
-            <li
-              className={activeSection === "analytics" ? "active" : ""}
-              onClick={() => setActiveSection("analytics")}
-            >
-              Analytics Summary
-            </li>
-
+            <li onClick={() => setActiveSection("dashboard")}>Dashboard Overview</li>
+            <li onClick={() => setActiveSection("users")}>User Management</li>
+            <li onClick={() => setActiveSection("elections")}>Election Management</li>
+            <li onClick={() => setActiveSection("reports")}>Report Management</li>
+            <li onClick={() => setActiveSection("security")}>Security Panel</li>
+            <li onClick={() => setActiveSection("analytics")}>Analytics Summary</li>
           </ul>
         </div>
 
@@ -206,38 +177,16 @@ function AdminDashboard() {
               <h1>WELCOME TO THE ADMIN PAGE</h1>
 
               <div className="card-container">
-
-                <div className="card">
-                  <h3>Total Registered Citizens</h3>
-                  <h2>{data.totalCitizens}</h2>
-                </div>
-
-                <div className="card">
-                  <h3>Total Observers</h3>
-                  <h2>{data.totalObservers}</h2>
-                </div>
-
-                <div className="card">
-                  <h3>Total Reports Submitted</h3>
-                  <h2>{data.totalReports}</h2>
-                </div>
-
-                <div className="card">
-                  <h3>Total Ongoing Elections</h3>
-                  <h2>{data.totalElections}</h2>
-                </div>
-
-                <div className="card">
-                  <h3>Observer Summaries</h3>
-                  <h2>{data.observerSubmissions.length}</h2>
-                </div>
-
+                <div className="card"><h3>Citizens</h3><h2>{data.totalCitizens}</h2></div>
+                <div className="card"><h3>Observers</h3><h2>{data.totalObservers}</h2></div>
+                <div className="card"><h3>Reports</h3><h2>{data.totalReports}</h2></div>
+                <div className="card"><h3>Elections</h3><h2>{data.totalElections}</h2></div>
               </div>
 
               <div className="graph-section">
 
                 <div className="graph-card">
-                  <h3>Graph: Reports per Day</h3>
+                  <h3>Reports per Day</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={barData}>
                       <XAxis dataKey="date" />
@@ -249,22 +198,12 @@ function AdminDashboard() {
                 </div>
 
                 <div className="graph-card">
-                  <h3>Graph: Active Users</h3>
+                  <h3>Active Users</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        dataKey="value"
-                        label
-                      >
+                      <Pie data={pieData} dataKey="value" label>
                         {pieData.map((entry, index) => (
-                          <Cell
-                            key={index}
-                            fill={COLORS[index % COLORS.length]}
-                          />
+                          <Cell key={index} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
                       <Legend />
@@ -273,39 +212,6 @@ function AdminDashboard() {
                   </ResponsiveContainer>
                 </div>
 
-              </div>
-
-              <div className="observer-submissions-card">
-                <div className="observer-submissions-header">
-                  <h3>Recent Observer Submissions</h3>
-                  <span>{data.observerSubmissions.length} total</span>
-                </div>
-
-                {data.observerSubmissions.length === 0 ? (
-                  <p className="observer-submissions-empty">
-                    No observer summaries submitted yet.
-                  </p>
-                ) : (
-                  <div className="observer-submissions-list">
-                    {data.observerSubmissions.slice(0, 6).map((submission) => (
-                      <div key={submission.id} className="observer-submission-item">
-                        <div>
-                          <h4>{submission.observer || "Observer"}</h4>
-                          <p>
-                            Submitted: {new Date(submission.submittedAt).toLocaleString()}
-                          </p>
-                        </div>
-
-                        <div className="observer-submission-metrics">
-                          <span>Elections: {submission.summary?.elections || 0}</span>
-                          <span>Reports: {submission.summary?.reports || 0}</span>
-                          <span>Resolved: {submission.summary?.resolved || 0}</span>
-                          <span>Rejected: {submission.summary?.rejected || 0}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </>
           )}

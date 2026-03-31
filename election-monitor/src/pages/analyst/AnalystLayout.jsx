@@ -36,7 +36,7 @@ const AnalystLayout = () => {
               currentUser?.profileImage ||
               currentUser?.profilePic ||
               currentUser?.image ||
-              "/default-profile.png"
+              "/default-profile.svg"
             }
             alt="profile"
             className="analyst-profile-pic"

@@ -2,6 +2,16 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "./Navbar.css";
 
+const getUserImage = (user) => {
+  return (
+    user?.profileImage ||
+    user?.profilePic ||
+    user?.image ||
+    user?.avatar ||
+    "/default-profile.svg"
+  );
+};
+
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -53,7 +63,7 @@ const Navbar = () => {
               onClick={() => setShowDropdown(!showDropdown)}
             >
               <img
-                src={currentUser?.image}
+                src={getUserImage(currentUser)}
                 alt="Profile"
                 className="profile-img"
               />
@@ -79,10 +89,10 @@ const Navbar = () => {
               onClick={() => setShowDropdown(!showDropdown)}
             >
               <img
-  src={currentUser?.image || "/default-profile.png"}
-  alt="Profile"
-  className="profile-img"
-/>
+                src={getUserImage(currentUser)}
+                alt="Profile"
+                className="profile-img"
+              />
 
 <span>{currentUser?.name}</span>
             </div>

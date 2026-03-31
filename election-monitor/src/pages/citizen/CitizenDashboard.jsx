@@ -79,7 +79,7 @@ function CitizenDashboard() {
               currentUser?.profileImage ||
               currentUser?.profilePic ||
               currentUser?.image ||
-              "/default-profile.png"
+              "/default-profile.svg"
             }
             alt="profile"
             className="profile-pic"
@@ -154,7 +154,7 @@ function CitizenDashboard() {
                       currentUser?.profileImage ||
                       currentUser?.profilePic ||
                       currentUser?.image ||
-                      "/default-profile.png"
+                      "/default-profile.svg"
                     }
                     alt="profile"
                     className="profile-pic"

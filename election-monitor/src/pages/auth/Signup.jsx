@@ -80,7 +80,7 @@ const newUser = {
   mobile: formData.mobile,
   password: formData.password,
   role: formData.role,
-  profileImage: formData.profileImage || "/default-profile.png",
+  profileImage: formData.profileImage || "/default-profile.svg",
 };
 
 // ✅ Push into electionSystem.users

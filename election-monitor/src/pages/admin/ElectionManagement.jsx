@@ -1,22 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./ElectionManagement.css";
 
 function ElectionManagement() {
 
-  const getSystemData = () => {
-    return JSON.parse(localStorage.getItem("electionSystem")) || {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    };
-  };
-
-  const [elections, setElections] = useState(() => {
-    const systemData = getSystemData();
-    return systemData.elections || [];
-  });
-
+  const [elections, setElections] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
   const [newElection, setNewElection] = useState({
@@ -28,39 +15,36 @@ function ElectionManagement() {
     active: false,
   });
 
-  const updateStorage = (updatedElections) => {
-    const systemData = getSystemData();
-    systemData.elections = updatedElections;
+  // ✅ FETCH FROM BACKEND
+  useEffect(() => {
+    fetch("http://localhost:8080/api/elections")
+      .then(res => res.json())
+      .then(data => setElections(data));
+  }, []);
 
-    localStorage.setItem(
-      "electionSystem",
-      JSON.stringify(systemData)
-    );
-
-    setElections(updatedElections);
-  };
-
-  const handleCreate = () => {
+  // ✅ CREATE ELECTION (POST)
+  const handleCreate = async () => {
     if (!newElection.title || !newElection.startDate || !newElection.endDate) {
       alert("Please fill all required fields");
       return;
     }
 
-    const formattedElection = {
-      id: Date.now(),
-      ...newElection,
-      candidates: newElection.candidates
-        .split(",")
-        .map((c) => c.trim()),
-      observers: newElection.observers
-        .split(",")
-        .map((o) => o.trim()),
-      active: false,
-      createdAt: new Date().toLocaleDateString(),
-    };
+    const response = await fetch("http://localhost:8080/api/elections", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: newElection.title,
+        startDate: newElection.startDate,
+        endDate: newElection.endDate,
+        active: false,
+      }),
+    });
 
-    const updated = [...elections, formattedElection];
-    updateStorage(updated);
+    const data = await response.json();
+
+    setElections([...elections, data]);
 
     setShowModal(false);
     setNewElection({
@@ -73,22 +57,24 @@ function ElectionManagement() {
     });
   };
 
+  // ❗ ACTIVE TOGGLE (frontend only for now)
   const toggleActive = (id) => {
-    const updated = elections.map((election) =>
-      election.id === id
-        ? { ...election, active: !election.active }
-        : election
+    setElections(
+      elections.map((election) =>
+        election.id === id
+          ? { ...election, active: !election.active }
+          : election
+      )
     );
-
-    updateStorage(updated);
   };
 
-  const deleteElection = (id) => {
-    const updated = elections.filter(
-      (election) => election.id !== id
-    );
+  // ✅ DELETE ELECTION
+  const deleteElection = async (id) => {
+    await fetch(`http://localhost:8080/api/elections/${id}`, {
+      method: "DELETE",
+    });
 
-    updateStorage(updated);
+    setElections(elections.filter((e) => e.id !== id));
   };
 
   return (
@@ -120,16 +106,8 @@ function ElectionManagement() {
               <td>{election.title}</td>
               <td>{election.startDate}</td>
               <td>{election.endDate}</td>
-              <td>
-                {Array.isArray(election.candidates)
-                  ? election.candidates.join(", ")
-                  : election.candidates}
-              </td>
-              <td>
-                {Array.isArray(election.observers)
-                  ? election.observers.join(", ")
-                  : election.observers}
-              </td>
+              <td>-</td>
+              <td>-</td>
               <td>
                 {election.active ? (
                   <span className="active">Active</span>

@@ -182,7 +182,7 @@ function ObserverDashboard() {
     currentUser?.profileImage ||
     currentUser?.profilePic ||
     currentUser?.image ||
-    "/default-profile.png";
+    "/default-profile.svg";
 
   const observerAliases = (() => {
     const aliases = new Set();

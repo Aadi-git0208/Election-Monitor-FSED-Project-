@@ -3,104 +3,56 @@ import "./ReportManagement.css";
 
 function ReportManagement() {
 
-  const getSystemData = () => {
-    return JSON.parse(localStorage.getItem("electionSystem")) || {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    };
-  };
-
   const [reports, setReports] = useState([]);
   const [observers, setObservers] = useState([]);
-
   const [filterStatus, setFilterStatus] = useState("all");
 
+  // ✅ FETCH REPORTS + USERS (observers)
   useEffect(() => {
-    const loadData = () => {
-      const systemData = getSystemData();
-      setReports(systemData.reports || []);
+    fetch("http://localhost:8080/api/reports")
+      .then(res => res.json())
+      .then(data => setReports(data));
 
-      const activeObservers = (systemData.users || []).filter(
-        (user) => user.role === "observer" && !user.blocked
-      );
-
-      setObservers(activeObservers);
-    };
-
-    loadData();
-    const interval = setInterval(loadData, 1000);
-    return () => clearInterval(interval);
+    fetch("http://localhost:8080/api/users")
+      .then(res => res.json())
+      .then(users => {
+        const activeObservers = users.filter(
+          (u) => u.role === "observer" && !u.blocked
+        );
+        setObservers(activeObservers);
+      });
   }, []);
 
-  const updateStorage = (updatedReports) => {
-    const systemData = getSystemData();
-    systemData.reports = updatedReports;
-
-    localStorage.setItem(
-      "electionSystem",
-      JSON.stringify(systemData)
-    );
-
-    setReports(updatedReports);
-  };
-
+  // ❗ ASSIGN OBSERVER (frontend only for now)
   const assignObserver = (id, observerEmail) => {
     const selectedObserver = observers.find(
       (observer) => observer.email === observerEmail
     );
 
-    const updated = reports.map((report) =>
-      report.id === id
-        ? {
-            ...report,
-            assignedTo: selectedObserver?.fullName || "",
-            assignedObserver: selectedObserver?.fullName || "",
-            assignedObserverEmail: selectedObserver?.email || "",
-            assignedObserverId: selectedObserver?.id || "",
-            observerEmail: selectedObserver?.email || "",
-            observerId: selectedObserver?.id || "",
-            status: selectedObserver
-              ? !report.status || report.status === "Pending"
+    setReports(
+      reports.map((report) =>
+        report.id === id
+          ? {
+              ...report,
+              assignedObserver: selectedObserver?.fullName || "",
+              status: selectedObserver
                 ? "Assigned"
-                : report.status
-              : report.status === "Assigned"
-                ? "Pending"
-                : report.status || "Pending",
-          }
-        : report
+                : "Pending",
+            }
+          : report
+      )
     );
-
-    updateStorage(updated);
   };
 
-  const getAssignedObserverEmail = (report) => {
-    if (report.assignedObserverEmail) return report.assignedObserverEmail;
-    if (report.observerEmail) return report.observerEmail;
-
-    const normalizedAssigned = String(report.assignedTo || "")
-      .trim()
-      .toLowerCase();
-
-    if (!normalizedAssigned) return "";
-
-    const matchedObserver = observers.find((observer) => {
-      const email = String(observer.email || "").trim().toLowerCase();
-      const fullName = String(observer.fullName || "").trim().toLowerCase();
-      return email === normalizedAssigned || fullName === normalizedAssigned;
-    });
-
-    return matchedObserver?.email || "";
-  };
-
+  // ❗ COMMENT (frontend only)
   const addComment = (id, comment) => {
-    const updated = reports.map((report) =>
-      report.id === id
-        ? { ...report, adminComment: comment }
-        : report
+    setReports(
+      reports.map((report) =>
+        report.id === id
+          ? { ...report, adminComment: comment }
+          : report
+      )
     );
-    updateStorage(updated);
   };
 
   const filteredReports =
@@ -182,12 +134,14 @@ function ReportManagement() {
 
                   <td>
                     <select
-                      value={getAssignedObserverEmail(report)}
-                      onChange={(e) => assignObserver(report.id, e.target.value)}
+                      value={report.assignedObserver || ""}
+                      onChange={(e) =>
+                        assignObserver(report.id, e.target.value)
+                      }
                     >
                       <option value="">Unassigned</option>
                       {observers.map((observer) => (
-                        <option key={observer.id || observer.email} value={observer.email}>
+                        <option key={observer.id} value={observer.email}>
                           {observer.fullName} ({observer.email})
                         </option>
                       ))}
@@ -206,7 +160,7 @@ function ReportManagement() {
                   </td>
 
                   <td>
-                    {getAssignedObserverEmail(report) ? "Assigned" : "Unassigned"}
+                    {report.assignedObserver ? "Assigned" : "Unassigned"}
                   </td>
                 </tr>
               ))

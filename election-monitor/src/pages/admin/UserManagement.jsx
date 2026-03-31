@@ -1,7 +1,35 @@
 import React, { useState, useEffect } from "react";
 import "./UserManagement.css";
 
-function UserManagement() {
+const getUserImage = (user) => {
+  return (
+    user?.profileImage ||
+    user?.profilePic ||
+    user?.image ||
+    user?.avatar ||
+    "/default-profile.svg"
+  );
+};
+
+const syncUsersToElectionSystem = (users) => {
+  const systemData =
+    JSON.parse(localStorage.getItem("electionSystem")) || {
+      users: [],
+      elections: [],
+      reports: [],
+      notifications: [],
+    };
+
+  localStorage.setItem(
+    "electionSystem",
+    JSON.stringify({
+      ...systemData,
+      users,
+    })
+  );
+};
+
+function UserManagement({ onUsersUpdated }) {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("all");
@@ -16,74 +44,58 @@ function UserManagement() {
   });
 
   useEffect(() => {
-    const loadUsers = () => {
-      const systemData =
-        JSON.parse(localStorage.getItem("electionSystem")) || {
-          users: [],
-          elections: [],
-          reports: [],
-          notifications: [],
-        };
-      setUsers(systemData.users || []);
-    };
-
-    loadUsers();
-    const interval = setInterval(loadUsers, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const updateStorage = (updatedUsers) => {
-    const systemData =
-      JSON.parse(localStorage.getItem("electionSystem")) || {
-        users: [],
-        elections: [],
-        reports: [],
-        notifications: [],
-      };
-
-    systemData.users = updatedUsers;
-    localStorage.setItem("electionSystem", JSON.stringify(systemData));
-    setUsers(updatedUsers);
-  };
+    fetch("http://localhost:8080/api/users")
+      .then((res) => res.json())
+      .then((data) => {
+        setUsers(data);
+        syncUsersToElectionSystem(data);
+        onUsersUpdated?.();
+      });
+  }, [onUsersUpdated]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const imageUrl = URL.createObjectURL(file);
-    setNewUser({
-      ...newUser,
-      profileImage: imageUrl,
-    });
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setNewUser((prev) => ({
+        ...prev,
+        profileImage: reader.result,
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!newUser.fullName || !newUser.email || !newUser.password) {
       alert("Please fill all required fields");
       return;
     }
 
-    const userExists = users.find(
-      (u) => u.email.toLowerCase() === newUser.email.toLowerCase()
-    );
+    const response = await fetch("http://localhost:8080/api/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fullName: newUser.fullName,
+        email: newUser.email,
+        password: newUser.password,
+        role: newUser.role,
+        profileImage: newUser.profileImage || "/default-profile.svg",
+        blocked: false,
+      }),
+    });
 
-    if (userExists) {
-      alert("User already exists!");
-      return;
-    }
+    const data = await response.json();
 
-    const userToAdd = {
-      id: Date.now(),
-      fullName: newUser.fullName,
-      email: newUser.email,
-      role: newUser.role,
-      password: newUser.password,
-      profileImage: "/default-profile.png",
-      blocked: false,
-    };
-
-    const updated = [...users, userToAdd];
-    updateStorage(updated);
+    setUsers((prev) => {
+      const updatedUsers = [...prev, data];
+      syncUsersToElectionSystem(updatedUsers);
+      onUsersUpdated?.();
+      return updatedUsers;
+    });
 
     setShowModal(false);
     setNewUser({
@@ -95,25 +107,41 @@ function UserManagement() {
     });
   };
 
-  const deleteUser = (email) => {
+  const deleteUser = async (id) => {
     if (!window.confirm("Delete this user?")) return;
-    updateStorage(users.filter((u) => u.email !== email));
+
+    await fetch(`http://localhost:8080/api/users/${id}`, {
+      method: "DELETE",
+    });
+
+    setUsers((prev) => {
+      const updatedUsers = prev.filter((u) => u.id !== id);
+      syncUsersToElectionSystem(updatedUsers);
+      onUsersUpdated?.();
+      return updatedUsers;
+    });
   };
 
-  const toggleBlock = (email) => {
-    updateStorage(
-      users.map((u) =>
-        u.email === email ? { ...u, blocked: !u.blocked } : u
-      )
-    );
+  const toggleBlock = (id) => {
+    setUsers((prev) => {
+      const updatedUsers = prev.map((u) =>
+        u.id === id ? { ...u, blocked: !u.blocked } : u
+      );
+      syncUsersToElectionSystem(updatedUsers);
+      onUsersUpdated?.();
+      return updatedUsers;
+    });
   };
 
-  const changeRole = (email, newRole) => {
-    updateStorage(
-      users.map((u) =>
-        u.email === email ? { ...u, role: newRole } : u
-      )
-    );
+  const changeRole = (id, newRole) => {
+    setUsers((prev) => {
+      const updatedUsers = prev.map((u) =>
+        u.id === id ? { ...u, role: newRole } : u
+      );
+      syncUsersToElectionSystem(updatedUsers);
+      onUsersUpdated?.();
+      return updatedUsers;
+    });
   };
 
   const filteredUsers = users
@@ -155,19 +183,19 @@ function UserManagement() {
 
       <div className="card-container">
         {filteredUsers.map((user) => (
-          <div className="user-card" key={user.email}>
+          <div className="user-card" key={user.id}>
             <img
-              src={user.profileImage}
+              src={getUserImage(user)}
               alt="profile"
               className="card-img"
             />
-            <h3>{user.fullName}</h3>
+            <h3>{user.fullName || user.name || "User"}</h3>
             <p className="email">{user.email}</p>
 
             <select
               value={user.role}
               onChange={(e) =>
-                changeRole(user.email, e.target.value)
+                changeRole(user.id, e.target.value)
               }
               className="role-select"
             >
@@ -184,14 +212,14 @@ function UserManagement() {
             <div className="card-buttons">
               <button
                 className="block-btn"
-                onClick={() => toggleBlock(user.email)}
+                onClick={() => toggleBlock(user.id)}
               >
                 {user.blocked ? "Unblock" : "Block"}
               </button>
 
               <button
                 className="delete-btn"
-                onClick={() => deleteUser(user.email)}
+                onClick={() => deleteUser(user.id)}
               >
                 Delete
               </button>

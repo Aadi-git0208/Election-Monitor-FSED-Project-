@@ -107,7 +107,7 @@ function ProfileUpdateModal({ onClose }) {
       ...user,
       fullName: fullName.trim(),
       mobile: mobile.trim(),
-      profileImage: profileImage || user.profileImage || "/default-profile.png",
+      profileImage: profileImage || user.profileImage || "/default-profile.svg",
     }));
 
     if (!updatedUser) {
@@ -180,7 +180,7 @@ function ProfileUpdateModal({ onClose }) {
 
           <div className="profile-preview-wrap">
             <img
-              src={profileImage || "/default-profile.png"}
+              src={profileImage || "/default-profile.svg"}
               alt="profile preview"
               className="profile-preview"
             />
