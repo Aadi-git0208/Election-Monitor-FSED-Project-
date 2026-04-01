@@ -235,7 +235,11 @@ function Login() {
       return;
     }
 
-    const normalizedEmail = formData.email.trim().toLowerCase();
+    const normalizedEmail = String(formData.email || "")
+      .trim()
+      .toLowerCase();
+    const normalizedPassword = String(formData.password || "");
+    const normalizedRole = String(formData.role || "");
 
     // 🔥 READ FROM electionSystem
     const systemData =
@@ -259,8 +263,8 @@ function Login() {
 
       return (
         userEmail === normalizedEmail &&
-        userPassword === formData.password &&
-        userRole === formData.role
+        userPassword === normalizedPassword &&
+        userRole === normalizedRole
       );
     });
 
