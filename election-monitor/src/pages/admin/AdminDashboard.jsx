@@ -19,6 +19,52 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const readStoredJson = (storage, key, fallback) => {
+  const raw = storage.getItem(key);
+
+  if (!raw) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    storage.removeItem(key);
+    return fallback;
+  }
+};
+
+const getSystemData = () => {
+  const parsed = readStoredJson(localStorage, "electionSystem", null);
+
+  if (!parsed || typeof parsed !== "object") {
+    return {
+      users: [],
+      elections: [],
+      reports: [],
+      notifications: [],
+    };
+  }
+
+  return {
+    users: Array.isArray(parsed.users) ? parsed.users : [],
+    elections: Array.isArray(parsed.elections) ? parsed.elections : [],
+    reports: Array.isArray(parsed.reports) ? parsed.reports : [],
+    notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
+  };
+};
+
+const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").trim();
+const USERS_ENDPOINT = API_BASE_URL
+  ? `${API_BASE_URL.replace(/\/$/, "")}/api/users`
+  : "";
+const REPORTS_ENDPOINT = API_BASE_URL
+  ? `${API_BASE_URL.replace(/\/$/, "")}/api/reports`
+  : "";
+const ELECTIONS_ENDPOINT = API_BASE_URL
+  ? `${API_BASE_URL.replace(/\/$/, "")}/api/elections`
+  : "";
+
 const getUserImage = (user) => {
   return (
     user?.profileImage ||
@@ -47,42 +93,82 @@ function AdminDashboard() {
   });
 
   const currentUser =
-    JSON.parse(localStorage.getItem("currentUser")) ||
-    JSON.parse(sessionStorage.getItem("currentUser"));
+    readStoredJson(localStorage, "currentUser", null) ||
+    readStoredJson(sessionStorage, "currentUser", null);
 
   // ✅ BACKEND DATA LOAD
   const loadData = useCallback(async () => {
     try {
-      const usersRes = await fetch("http://localhost:8080/api/users");
-      const users = await usersRes.json();
+      let users = [];
+      let reports = [];
+      let elections = [];
 
-      const reportsRes = await fetch("http://localhost:8080/api/reports");
-      const reports = await reportsRes.json();
+      if (USERS_ENDPOINT && REPORTS_ENDPOINT && ELECTIONS_ENDPOINT) {
+        const [usersRes, reportsRes, electionsRes] = await Promise.all([
+          fetch(USERS_ENDPOINT),
+          fetch(REPORTS_ENDPOINT),
+          fetch(ELECTIONS_ENDPOINT),
+        ]);
 
-      const electionsRes = await fetch("http://localhost:8080/api/elections");
-      const elections = await electionsRes.json();
+        if (!usersRes.ok || !reportsRes.ok || !electionsRes.ok) {
+          throw new Error("Dashboard API request failed");
+        }
+
+        users = await usersRes.json();
+        reports = await reportsRes.json();
+        elections = await electionsRes.json();
+      } else {
+        const localData = getSystemData();
+        users = localData.users;
+        reports = localData.reports;
+        elections = localData.elections;
+      }
+
+      const safeUsers = Array.isArray(users) ? users : [];
+      const safeReports = Array.isArray(reports) ? reports : [];
+      const safeElections = Array.isArray(elections) ? elections : [];
 
       const observerSubmissions =
-        JSON.parse(localStorage.getItem("observer_submissions")) || [];
+        readStoredJson(localStorage, "observer_submissions", []);
 
-      const citizens = users.filter((u) => u.role === "citizen");
-      const observers = users.filter((u) => u.role === "observer");
-      const adminUsers = users.filter((u) => u.role === "admin");
-      const analysts = users.filter((u) => u.role === "analyst");
+      const citizens = safeUsers.filter((u) => u.role === "citizen");
+      const observers = safeUsers.filter((u) => u.role === "observer");
+      const adminUsers = safeUsers.filter((u) => u.role === "admin");
+      const analysts = safeUsers.filter((u) => u.role === "analyst");
 
       setData({
         totalCitizens: citizens.length,
         totalObservers: observers.length,
         totalAdmin: adminUsers.length,
         totalAnalysts: analysts.length,
-        totalReports: reports.length,
-        totalElections: elections.length,
-        reportsData: reports,
+        totalReports: safeReports.length,
+        totalElections: safeElections.length,
+        reportsData: safeReports,
         observerSubmissions,
       });
 
     } catch (error) {
-      console.error("Error loading dashboard data:", error);
+      console.error("Error loading dashboard data, using local fallback:", error);
+
+      const localData = getSystemData();
+      const observerSubmissions =
+        readStoredJson(localStorage, "observer_submissions", []);
+
+      const citizens = localData.users.filter((u) => u.role === "citizen");
+      const observers = localData.users.filter((u) => u.role === "observer");
+      const adminUsers = localData.users.filter((u) => u.role === "admin");
+      const analysts = localData.users.filter((u) => u.role === "analyst");
+
+      setData({
+        totalCitizens: citizens.length,
+        totalObservers: observers.length,
+        totalAdmin: adminUsers.length,
+        totalAnalysts: analysts.length,
+        totalReports: localData.reports.length,
+        totalElections: localData.elections.length,
+        reportsData: localData.reports,
+        observerSubmissions,
+      });
     }
   }, []);
 

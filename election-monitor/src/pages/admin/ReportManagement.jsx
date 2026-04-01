@@ -1,26 +1,123 @@
 import React, { useEffect, useState } from "react";
 import "./ReportManagement.css";
 
+const readStoredJson = (storage, key, fallback) => {
+  const raw = storage.getItem(key);
+
+  if (!raw) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    storage.removeItem(key);
+    return fallback;
+  }
+};
+
+const getSystemData = () => {
+  const parsed = readStoredJson(localStorage, "electionSystem", null);
+
+  if (!parsed || typeof parsed !== "object") {
+    return {
+      users: [],
+      elections: [],
+      reports: [],
+      notifications: [],
+    };
+  }
+
+  return {
+    users: Array.isArray(parsed.users) ? parsed.users : [],
+    elections: Array.isArray(parsed.elections) ? parsed.elections : [],
+    reports: Array.isArray(parsed.reports) ? parsed.reports : [],
+    notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
+  };
+};
+
+const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").trim();
+const REPORTS_ENDPOINT = API_BASE_URL
+  ? `${API_BASE_URL.replace(/\/$/, "")}/api/reports`
+  : "";
+const USERS_ENDPOINT = API_BASE_URL
+  ? `${API_BASE_URL.replace(/\/$/, "")}/api/users`
+  : "";
+
 function ReportManagement() {
 
   const [reports, setReports] = useState([]);
   const [observers, setObservers] = useState([]);
   const [filterStatus, setFilterStatus] = useState("all");
 
-  // ✅ FETCH REPORTS + USERS (observers)
   useEffect(() => {
-    fetch("http://localhost:8080/api/reports")
-      .then(res => res.json())
-      .then(data => setReports(data));
+    let cancelled = false;
 
-    fetch("http://localhost:8080/api/users")
-      .then(res => res.json())
-      .then(users => {
-        const activeObservers = users.filter(
-          (u) => u.role === "observer" && !u.blocked
+    const loadFromLocal = () => {
+      const systemData = getSystemData();
+
+      const localReports = Array.isArray(systemData.reports)
+        ? systemData.reports
+        : [];
+      const localUsers = Array.isArray(systemData.users)
+        ? systemData.users
+        : [];
+
+      const activeObservers = localUsers.filter(
+        (u) => u?.role === "observer" && !u?.blocked
+      );
+
+      if (cancelled) {
+        return;
+      }
+
+      setReports(localReports);
+      setObservers(activeObservers);
+    };
+
+    const load = async () => {
+      if (!REPORTS_ENDPOINT || !USERS_ENDPOINT) {
+        loadFromLocal();
+        return;
+      }
+
+      try {
+        const [reportsRes, usersRes] = await Promise.all([
+          fetch(REPORTS_ENDPOINT),
+          fetch(USERS_ENDPOINT),
+        ]);
+
+        if (!reportsRes.ok || !usersRes.ok) {
+          throw new Error("Failed to load admin report data");
+        }
+
+        const reportData = await reportsRes.json();
+        const users = await usersRes.json();
+
+        if (cancelled) {
+          return;
+        }
+
+        const safeReports = Array.isArray(reportData) ? reportData : [];
+        const safeUsers = Array.isArray(users) ? users : [];
+
+        const activeObservers = safeUsers.filter(
+          (u) => u?.role === "observer" && !u?.blocked
         );
+
+        setReports(safeReports);
         setObservers(activeObservers);
-      });
+      } catch (error) {
+        console.error("Falling back to local reports/users:", error);
+        loadFromLocal();
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ❗ ASSIGN OBSERVER (frontend only for now)
