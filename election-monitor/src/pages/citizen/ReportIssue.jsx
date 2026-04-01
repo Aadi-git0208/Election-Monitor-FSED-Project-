@@ -1,11 +1,51 @@
 import React, { useState } from "react";
 import "./ReportIssue.css";
 
+const readStoredJson = (storage, key, fallback) => {
+  const raw = storage.getItem(key);
+
+  if (!raw) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    storage.removeItem(key);
+    return fallback;
+  }
+};
+
+const getSystemData = () => {
+  const parsed = readStoredJson(localStorage, "electionSystem", null);
+
+  if (!parsed || typeof parsed !== "object") {
+    return {
+      users: [],
+      elections: [],
+      reports: [],
+      notifications: [],
+    };
+  }
+
+  return {
+    users: Array.isArray(parsed.users) ? parsed.users : [],
+    elections: Array.isArray(parsed.elections) ? parsed.elections : [],
+    reports: Array.isArray(parsed.reports) ? parsed.reports : [],
+    notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
+  };
+};
+
+const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").trim();
+const REPORT_SUBMIT_ENDPOINT = API_BASE_URL
+  ? `${API_BASE_URL.replace(/\/$/, "")}/api/reports/submit`
+  : "";
+
 function ReportIssue() {
 
   const currentUser =
-    JSON.parse(localStorage.getItem("currentUser")) ||
-    JSON.parse(sessionStorage.getItem("currentUser")) ||
+    readStoredJson(localStorage, "currentUser", null) ||
+    readStoredJson(sessionStorage, "currentUser", null) ||
     {};
 
   const [title, setTitle] = useState("");
@@ -52,39 +92,59 @@ function ReportIssue() {
       return;
     }
 
+    const reportPayload = {
+      userId: currentUser?.id,
+      email: currentUser?.email,
+      userName: currentUser?.fullName || currentUser?.name || "Citizen",
+      title,
+      description,
+      image,
+      location,
+      date: new Date().toLocaleDateString(),
+      status: "Pending",
+    };
+
     try {
-      const res = await fetch("http://localhost:8080/api/reports/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          userId: currentUser?.id,
-          email: currentUser?.email,
-          userName: currentUser?.fullName,
-          title,
-          description,
-          image,
-          location,
-          date: new Date().toLocaleDateString()
-        })
-      });
+      let submittedToApi = false;
 
-      if (res.ok) {
-        alert("Report Submitted Successfully!");
+      if (REPORT_SUBMIT_ENDPOINT) {
+        const res = await fetch(REPORT_SUBMIT_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(reportPayload),
+        });
 
-        // reset form
-        setTitle("");
-        setDescription("");
-        setImage(null);
-        setLocation("");
-      } else {
-        alert("Failed to submit report");
+        submittedToApi = res.ok;
       }
+
+      if (!submittedToApi) {
+        const systemData = getSystemData();
+        const nextId =
+          systemData.reports.length > 0
+            ? Math.max(...systemData.reports.map((entry) => Number(entry.id) || 0)) + 1
+            : Date.now();
+
+        systemData.reports.push({
+          id: nextId,
+          ...reportPayload,
+        });
+
+        localStorage.setItem("electionSystem", JSON.stringify(systemData));
+      }
+
+      alert("Report Submitted Successfully!");
+
+      // reset form
+      setTitle("");
+      setDescription("");
+      setImage(null);
+      setLocation("");
 
     } catch (err) {
       console.error(err);
-      alert("Error connecting to server");
+      alert("Failed to submit report");
     }
   };
 
