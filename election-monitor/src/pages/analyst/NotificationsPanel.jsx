@@ -5,59 +5,56 @@ const NotificationsPanel = () => {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    const loadData = () => {
-      const systemData =
-        JSON.parse(localStorage.getItem("electionSystem")) || {
-          users: [],
-          elections: [],
-          reports: [],
-          notifications: [],
-        };
+    const loadData = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/analyst/reports");
+        const reports = await res.json();
 
-      const systemNotifications = (systemData.notifications || []).slice(0, 20);
-      const reports = systemData.reports || [];
+        // ===== SAME LOGIC (no change) =====
+        const pending = reports.filter((report) => report.status === "Pending").length;
+        const assigned = reports.filter((report) => report.status === "Assigned").length;
+        const rejected = reports.filter((report) => report.status === "Rejected").length;
 
-      const pending = reports.filter((report) => report.status === "Pending").length;
-      const assigned = reports.filter((report) => report.status === "Assigned").length;
-      const rejected = reports.filter((report) => report.status === "Rejected").length;
+        const derivedAlerts = [];
 
-      const derivedAlerts = [];
+        if (pending > 0) {
+          derivedAlerts.push({
+            id: `pending-${pending}`,
+            title: "Pending Reports Alert",
+            message: `${pending} reports are still pending review.`,
+            date: new Date().toLocaleString(),
+            type: "alert",
+          });
+        }
 
-      if (pending > 0) {
-        derivedAlerts.push({
-          id: `pending-${pending}`,
-          title: "Pending Reports Alert",
-          message: `${pending} reports are still pending review.`,
-          date: new Date().toLocaleString(),
-          type: "alert",
-        });
+        if (assigned > 0) {
+          derivedAlerts.push({
+            id: `assigned-${assigned}`,
+            title: "Assigned Reports Update",
+            message: `${assigned} reports are currently assigned to observers.`,
+            date: new Date().toLocaleString(),
+            type: "update",
+          });
+        }
+
+        if (rejected > 0) {
+          derivedAlerts.push({
+            id: `rejected-${rejected}`,
+            title: "Rejected Reports Notice",
+            message: `${rejected} reports have been rejected and need trend review.`,
+            date: new Date().toLocaleString(),
+            type: "critical",
+          });
+        }
+
+        setNotifications(derivedAlerts.slice(0, 30));
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
       }
-
-      if (assigned > 0) {
-        derivedAlerts.push({
-          id: `assigned-${assigned}`,
-          title: "Assigned Reports Update",
-          message: `${assigned} reports are currently assigned to observers.`,
-          date: new Date().toLocaleString(),
-          type: "update",
-        });
-      }
-
-      if (rejected > 0) {
-        derivedAlerts.push({
-          id: `rejected-${rejected}`,
-          title: "Rejected Reports Notice",
-          message: `${rejected} reports have been rejected and need trend review.`,
-          date: new Date().toLocaleString(),
-          type: "critical",
-        });
-      }
-
-      setNotifications([...derivedAlerts, ...systemNotifications].slice(0, 30));
     };
 
     loadData();
-    const interval = setInterval(loadData, 1000);
+    const interval = setInterval(loadData, 3000); // auto refresh
     return () => clearInterval(interval);
   }, []);
 
@@ -85,7 +82,6 @@ const NotificationsPanel = () => {
           ))}
         </div>
       )}
-
     </div>
   );
 };

@@ -17,48 +17,50 @@ const DataOverview = () => {
   const [reportsPerDay, setReportsPerDay] = useState([]);
 
   useEffect(() => {
-    const loadData = () => {
-      const systemData =
-        JSON.parse(localStorage.getItem("electionSystem")) || {
-          users: [],
-          elections: [],
-          reports: [],
-          notifications: [],
-        };
+    const loadData = async () => {
+      try {
+        const [reportsRes, electionsRes] = await Promise.all([
+          fetch("http://localhost:8080/api/analyst/reports"),
+          fetch("http://localhost:8080/api/analyst/elections"),
+        ]);
 
-      const reports = systemData.reports || [];
-      const elections = systemData.elections || [];
+        const reports = await reportsRes.json();
+        const elections = await electionsRes.json();
 
-      setReportStats({
-        total: reports.length,
-        pending: reports.filter((item) => item.status === "Pending").length,
-        assigned: reports.filter((item) => item.status === "Assigned").length,
-        resolved: reports.filter((item) => item.status === "Resolved").length,
-        rejected: reports.filter((item) => item.status === "Rejected").length,
-      });
+        // ===== SAME LOGIC (no change) =====
+        setReportStats({
+          total: reports.length,
+          pending: reports.filter((item) => item.status === "Pending").length,
+          assigned: reports.filter((item) => item.status === "Assigned").length,
+          resolved: reports.filter((item) => item.status === "Resolved").length,
+          rejected: reports.filter((item) => item.status === "Rejected").length,
+        });
 
-      setElectionStats({
-        total: elections.length,
-        active: elections.filter((item) => item.active).length,
-        inactive: elections.filter((item) => !item.active).length,
-      });
+        setElectionStats({
+          total: elections.length,
+          active: elections.filter((item) => item.active).length,
+          inactive: elections.filter((item) => !item.active).length,
+        });
 
-      const groupedByDate = reports.reduce((acc, report) => {
-        const key = report.date || "Unknown";
-        acc[key] = (acc[key] || 0) + 1;
-        return acc;
-      }, {});
+        const groupedByDate = reports.reduce((acc, report) => {
+          const key = report.date || "Unknown";
+          acc[key] = (acc[key] || 0) + 1;
+          return acc;
+        }, {});
 
-      setReportsPerDay(
-        Object.keys(groupedByDate).map((date) => ({
-          date,
-          count: groupedByDate[date],
-        }))
-      );
+        setReportsPerDay(
+          Object.keys(groupedByDate).map((date) => ({
+            date,
+            count: groupedByDate[date],
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching overview data:", error);
+      }
     };
 
     loadData();
-    const interval = setInterval(loadData, 1000);
+    const interval = setInterval(loadData, 3000); // auto refresh
     return () => clearInterval(interval);
   }, []);
 
@@ -119,7 +121,6 @@ const DataOverview = () => {
           )}
         </div>
       </div>
-
     </div>
   );
 };

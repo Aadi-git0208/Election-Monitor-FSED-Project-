@@ -18,55 +18,53 @@ const ChartsAnalytics = () => {
   const [dailyChartData, setDailyChartData] = useState([]);
 
   useEffect(() => {
-    const loadData = () => {
-      const systemData =
-        JSON.parse(localStorage.getItem("electionSystem")) || {
-          users: [],
-          elections: [],
-          reports: [],
-          notifications: [],
+    const loadData = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/analyst/reports");
+        const reports = await res.json();
+
+        // ===== SAME LOGIC (no change) =====
+        const statusCounts = {
+          Pending: 0,
+          Assigned: 0,
+          Resolved: 0,
+          Rejected: 0,
         };
 
-      const reports = systemData.reports || [];
+        reports.forEach((report) => {
+          const status = report.status || "Pending";
+          if (!statusCounts[status]) {
+            statusCounts[status] = 0;
+          }
+          statusCounts[status] += 1;
+        });
 
-      const statusCounts = {
-        Pending: 0,
-        Assigned: 0,
-        Resolved: 0,
-        Rejected: 0,
-      };
+        setStatusChartData(
+          Object.keys(statusCounts).map((status) => ({
+            status,
+            count: statusCounts[status],
+          }))
+        );
 
-      reports.forEach((report) => {
-        const status = report.status || "Pending";
-        if (!statusCounts[status]) {
-          statusCounts[status] = 0;
-        }
-        statusCounts[status] += 1;
-      });
+        const dailyCounts = reports.reduce((acc, report) => {
+          const key = report.date || "Unknown";
+          acc[key] = (acc[key] || 0) + 1;
+          return acc;
+        }, {});
 
-      setStatusChartData(
-        Object.keys(statusCounts).map((status) => ({
-          status,
-          count: statusCounts[status],
-        }))
-      );
-
-      const dailyCounts = reports.reduce((acc, report) => {
-        const key = report.date || "Unknown";
-        acc[key] = (acc[key] || 0) + 1;
-        return acc;
-      }, {});
-
-      setDailyChartData(
-        Object.keys(dailyCounts).map((date) => ({
-          date,
-          count: dailyCounts[date],
-        }))
-      );
+        setDailyChartData(
+          Object.keys(dailyCounts).map((date) => ({
+            date,
+            count: dailyCounts[date],
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching chart data:", error);
+      }
     };
 
     loadData();
-    const interval = setInterval(loadData, 1000);
+    const interval = setInterval(loadData, 3000); // auto refresh
     return () => clearInterval(interval);
   }, []);
 
@@ -114,7 +112,6 @@ const ChartsAnalytics = () => {
           </ResponsiveContainer>
         </div>
       </div>
-
     </div>
   );
 };

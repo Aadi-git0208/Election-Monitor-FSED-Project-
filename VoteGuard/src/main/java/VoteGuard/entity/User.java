@@ -3,21 +3,45 @@ package VoteGuard.entity;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String fullName;
+
+    @Column(unique = true, nullable = false)
     private String email;
+
+    @Column(nullable = false)
     private String password;
 
-    private String role; // admin / citizen
-    private boolean blocked;
+    // 🔥 ROLE UPDATED (admin / citizen / analyst)
+    @Column(nullable = false)
+    private String role;
 
+    private boolean blocked = false;
+
+    // Citizen specific
     private String voterId;
+
+    // Common profile field
     private String profileImage;
+
+    // ================= CONSTRUCTORS =================
+
+    public User() {}
+
+    public User(String fullName, String email, String password, String role) {
+        this.fullName = fullName;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.blocked = false;
+    }
 
     // ================= GETTERS & SETTERS =================
 
@@ -58,7 +82,8 @@ public class User {
     }
 
     public void setRole(String role) {
-        this.role = role;
+        // 🔥 normalize role (important)
+        this.role = role.toUpperCase();
     }
 
     public boolean isBlocked() {
@@ -68,8 +93,6 @@ public class User {
     public void setBlocked(boolean blocked) {
         this.blocked = blocked;
     }
-
-    // 🔥 NEW FIELDS
 
     public String getVoterId() {
         return voterId;

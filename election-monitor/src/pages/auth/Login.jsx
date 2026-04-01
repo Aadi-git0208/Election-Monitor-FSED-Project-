@@ -12,9 +12,25 @@ const DEFAULT_TWO_FACTOR_CONFIG = {
   },
 };
 
+const readStoredJson = (storage, key, fallback) => {
+  const raw = storage.getItem(key);
+
+  if (!raw) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    storage.removeItem(key);
+    return fallback;
+  }
+};
+
 const getTwoFactorConfig = () => {
-  const legacyToggle = JSON.parse(localStorage.getItem("twoFactor")) || false;
-  const savedConfig = JSON.parse(localStorage.getItem("twoFactorConfig"));
+  const legacyToggle =
+    readStoredJson(localStorage, "twoFactor", false) || false;
+  const savedConfig = readStoredJson(localStorage, "twoFactorConfig", null);
 
   if (!savedConfig) {
     return {
@@ -48,13 +64,11 @@ function Login() {
   });
   const [otpCode, setOtpCode] = useState("");
   const [pendingTwoFactor, setPendingTwoFactor] = useState(() => {
-    const savedChallenge = sessionStorage.getItem("pending2FA");
+    const parsedChallenge = readStoredJson(sessionStorage, "pending2FA", null);
 
-    if (!savedChallenge) {
+    if (!parsedChallenge) {
       return null;
     }
-
-    const parsedChallenge = JSON.parse(savedChallenge);
 
     if (parsedChallenge.expiresAt < Date.now()) {
       sessionStorage.removeItem("pending2FA");
@@ -91,14 +105,17 @@ function Login() {
   }, [navigate]);
 
   const appendLoginHistory = useCallback((entry) => {
-    const currentHistory = JSON.parse(localStorage.getItem("loginHistory")) || [];
+    const currentHistory = readStoredJson(localStorage, "loginHistory", []);
     const updatedHistory = [entry, ...currentHistory].slice(0, 200);
     localStorage.setItem("loginHistory", JSON.stringify(updatedHistory));
   }, []);
 
   const increaseFailedAttempts = useCallback((email) => {
-    const currentFailedMap =
-      JSON.parse(localStorage.getItem("loginFailedAttempts")) || {};
+    const currentFailedMap = readStoredJson(
+      localStorage,
+      "loginFailedAttempts",
+      {}
+    );
     const nextCount = (currentFailedMap[email] || 0) + 1;
     currentFailedMap[email] = nextCount;
     localStorage.setItem("loginFailedAttempts", JSON.stringify(currentFailedMap));
@@ -106,8 +123,11 @@ function Login() {
   }, []);
 
   const resetFailedAttempts = useCallback((email) => {
-    const currentFailedMap =
-      JSON.parse(localStorage.getItem("loginFailedAttempts")) || {};
+    const currentFailedMap = readStoredJson(
+      localStorage,
+      "loginFailedAttempts",
+      {}
+    );
     currentFailedMap[email] = 0;
     localStorage.setItem("loginFailedAttempts", JSON.stringify(currentFailedMap));
   }, []);
@@ -141,8 +161,8 @@ function Login() {
   // 🔥 Auto Login If Already Logged In
   useEffect(() => {
     const existingUser =
-      JSON.parse(localStorage.getItem("currentUser")) ||
-      JSON.parse(sessionStorage.getItem("currentUser"));
+      readStoredJson(localStorage, "currentUser", null) ||
+      readStoredJson(sessionStorage, "currentUser", null);
 
     if (existingUser) {
       redirectUser(existingUser.role);
@@ -165,7 +185,9 @@ function Login() {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    if (e) {
+      e.preventDefault();
+    }
 
     if (authStep === "otp") {
       if (!pendingTwoFactor) {
@@ -217,19 +239,30 @@ function Login() {
 
     // 🔥 READ FROM electionSystem
     const systemData =
-      JSON.parse(localStorage.getItem("electionSystem")) || {
+      readStoredJson(localStorage, "electionSystem", null) || {
         users: [],
         elections: [],
         reports: [],
         notifications: [],
       };
 
-    const validUser = systemData.users.find(
-      (user) =>
-        user.email.toLowerCase() === normalizedEmail &&
-        user.password === formData.password &&
-        user.role === formData.role
-    );
+    const users = Array.isArray(systemData.users) ? systemData.users : [];
+
+    const validUser = users.find((user) => {
+      if (!user || typeof user !== "object") {
+        return false;
+      }
+
+      const userEmail = String(user.email || "").trim().toLowerCase();
+      const userPassword = String(user.password || "");
+      const userRole = String(user.role || "");
+
+      return (
+        userEmail === normalizedEmail &&
+        userPassword === formData.password &&
+        userRole === formData.role
+      );
+    });
 
     if (!validUser) {
       const failedCount = increaseFailedAttempts(normalizedEmail);
@@ -323,7 +356,11 @@ function Login() {
                 </label>
               </div>
 
-              <button type="submit" className="login-btn">
+              <button
+                type="button"
+                className="login-btn"
+                onClick={handleSubmit}
+              >
                 Login
               </button>
 
@@ -348,7 +385,11 @@ function Login() {
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
               />
 
-              <button type="submit" className="login-btn">
+              <button
+                type="button"
+                className="login-btn"
+                onClick={handleSubmit}
+              >
                 Verify OTP
               </button>
 

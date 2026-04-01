@@ -3,6 +3,7 @@ package VoteGuard.entity;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "reports") // optional but good practice
 public class Report {
 
     @Id
@@ -12,11 +13,12 @@ public class Report {
     private String title;
     private String description;
 
-    private String status; // Pending, Assigned, Resolved, Rejected
+    private String status = "Pending"; // default safe
+
     private String assignedObserver;
     private String category;
 
-    // 🔥 ADD FOR CITIZEN SIDE
+    // 🔥 CITIZEN SIDE
     private Long userId;
     private String email;
     private String userName;
@@ -65,6 +67,7 @@ public class Report {
     }
 
     public void setStatus(String status) {
+        // 🔥 normalize (optional safe)
         this.status = status;
     }
 
@@ -83,8 +86,6 @@ public class Report {
     public void setCategory(String category) {
         this.category = category;
     }
-
-    // 🔥 NEW FIELDS
 
     public Long getUserId() {
         return userId;

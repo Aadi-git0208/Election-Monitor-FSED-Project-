@@ -1,25 +1,34 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./AnalystDashboard.css";
 
-const getSystemData = () => {
-  return (
-    JSON.parse(localStorage.getItem("electionSystem")) || {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    }
-  );
-};
-
 const AnalystDashboard = () => {
-  const [systemData, setSystemData] = useState(getSystemData());
+  const [systemData, setSystemData] = useState({
+    reports: [],
+    elections: [],
+  });
 
   useEffect(() => {
-    const loadData = () => setSystemData(getSystemData());
+    const loadData = async () => {
+      try {
+        const [reportsRes, electionsRes] = await Promise.all([
+          fetch("http://localhost:8080/api/analyst/reports"),
+          fetch("http://localhost:8080/api/analyst/elections"),
+        ]);
+
+        const reports = await reportsRes.json();
+        const elections = await electionsRes.json();
+
+        setSystemData({
+          reports: reports || [],
+          elections: elections || [],
+        });
+      } catch (error) {
+        console.error("Error fetching analyst data:", error);
+      }
+    };
 
     loadData();
-    const interval = setInterval(loadData, 1000);
+    const interval = setInterval(loadData, 3000); // auto refresh
     return () => clearInterval(interval);
   }, []);
 

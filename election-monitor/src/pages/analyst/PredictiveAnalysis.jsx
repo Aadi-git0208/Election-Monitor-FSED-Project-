@@ -5,20 +5,18 @@ const PredictiveAnalysis = () => {
   const [reports, setReports] = useState([]);
 
   useEffect(() => {
-    const loadData = () => {
-      const systemData =
-        JSON.parse(localStorage.getItem("electionSystem")) || {
-          users: [],
-          elections: [],
-          reports: [],
-          notifications: [],
-        };
-
-      setReports(systemData.reports || []);
+    const loadData = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/analyst/reports");
+        const data = await res.json();
+        setReports(data || []);
+      } catch (error) {
+        console.error("Error fetching predictive data:", error);
+      }
     };
 
     loadData();
-    const interval = setInterval(loadData, 1000);
+    const interval = setInterval(loadData, 3000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -87,7 +85,6 @@ const PredictiveAnalysis = () => {
         <h3>Recommendation</h3>
         <p>{analysis.recommendation}</p>
       </div>
-
     </div>
   );
 };

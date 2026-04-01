@@ -15,6 +15,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+  isolation: isolate;
+  z-index: 4000;
   background: linear-gradient(135deg, #33ffcc, #33ffcc4a, #2a6ecb9c);
 }
 
@@ -24,6 +27,9 @@ body {
   width: 400px;
   padding: 40px;
   border-radius: 20px;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
 
   /* Glass Effect */
   background: rgba(255, 255, 255, 0.12);
@@ -111,9 +117,13 @@ body {
 /* ================= LOGIN BUTTON ================= */
 
 .login-btn {
+  display: block;
   width: 100%;
   margin-top: 20px;
   padding: 12px;
+  position: relative;
+  z-index: 3;
+  pointer-events: auto;
 
   background: linear-gradient(135deg, #6a5acd, #4f46e5);
   color: white;
@@ -124,6 +134,12 @@ body {
 
   font-weight: 600;
   transition: 0.3s ease;
+}
+
+.login-card form {
+  position: relative;
+  z-index: 3;
+  pointer-events: auto;
 }
 
 .login-btn:hover {

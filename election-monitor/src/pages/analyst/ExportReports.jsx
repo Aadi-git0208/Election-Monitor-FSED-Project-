@@ -3,30 +3,33 @@ import "./ExportReports.css";
 
 const ExportReports = () => {
   const [message, setMessage] = useState("");
-  const [systemData, setSystemData] = useState(() =>
-    JSON.parse(localStorage.getItem("electionSystem")) || {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    }
-  );
+  const [systemData, setSystemData] = useState({
+    reports: [],
+    elections: [],
+  });
 
   useEffect(() => {
-    const loadData = () => {
-      const data =
-        JSON.parse(localStorage.getItem("electionSystem")) || {
-          users: [],
-          elections: [],
-          reports: [],
-          notifications: [],
-        };
+    const loadData = async () => {
+      try {
+        const [reportsRes, electionsRes] = await Promise.all([
+          fetch("http://localhost:8080/api/analyst/reports"),
+          fetch("http://localhost:8080/api/analyst/elections"),
+        ]);
 
-      setSystemData(data);
+        const reports = await reportsRes.json();
+        const elections = await electionsRes.json();
+
+        setSystemData({
+          reports: reports || [],
+          elections: elections || [],
+        });
+      } catch (error) {
+        console.error("Error fetching export data:", error);
+      }
     };
 
     loadData();
-    const interval = setInterval(loadData, 1000);
+    const interval = setInterval(loadData, 3000); // auto refresh
     return () => clearInterval(interval);
   }, []);
 
@@ -74,7 +77,7 @@ const ExportReports = () => {
         report.id,
         report.title || "",
         report.status || "Pending",
-        report.assignedTo || "",
+        report.assignedObserver || "", // 🔥 fixed field name
         report.date || "",
         report.location || "",
       ]
@@ -94,19 +97,14 @@ const ExportReports = () => {
       return;
     }
 
-    const header = "ID,Title,Start Date,End Date,Status,Observers";
+    const header = "ID,Title,Start Date,End Date,Status";
     const rows = elections.map((election) => {
-      const observers = Array.isArray(election.observers)
-        ? election.observers.join(" | ")
-        : election.observers || "";
-
       return [
         election.id,
-        election.title || election.name || "",
+        election.title || "",
         election.startDate || "",
         election.endDate || "",
         election.active ? "Active" : "Inactive",
-        observers,
       ]
         .map((value) => `"${String(value).replaceAll('"', '""')}"`)
         .join(",");
@@ -121,7 +119,8 @@ const ExportReports = () => {
   };
 
   const submitInsightToAdmin = () => {
-    const analystSubmissions = JSON.parse(localStorage.getItem("analyst_submissions")) || [];
+    const analystSubmissions =
+      JSON.parse(localStorage.getItem("analyst_submissions")) || [];
 
     const nextId =
       analystSubmissions.length > 0
@@ -169,7 +168,6 @@ const ExportReports = () => {
       </div>
 
       {message && <p className="export-message">{message}</p>}
-
     </div>
   );
 };
