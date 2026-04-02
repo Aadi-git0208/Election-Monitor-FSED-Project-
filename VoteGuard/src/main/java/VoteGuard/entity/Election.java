@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "elections") // optional but good practice
+@Table(name = "elections") 
 public class Election {
 
     @Id
@@ -15,9 +15,8 @@ public class Election {
     private String startDate;
     private String endDate;
 
-    private boolean active = false; // default safe value
+    private boolean active = false; 
 
-    // 🔥 candidates list (for frontend)
     @ElementCollection
     @CollectionTable(name = "election_candidates", joinColumns = @JoinColumn(name = "election_id"))
     @Column(name = "candidate_name")

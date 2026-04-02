@@ -1,9 +1,10 @@
 package VoteGuard.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reports") // optional but good practice
+@Table(name = "report")
 public class Report {
 
     @Id
@@ -13,28 +14,37 @@ public class Report {
     private String title;
     private String description;
 
-    private String status = "Pending"; // default safe
+    private String status = "Pending";
 
+    @Column(name = "assigned_observer")
     private String assignedObserver;
+
     private String category;
 
-    // 🔥 CITIZEN SIDE
+    @Column(name = "user_id")
     private Long userId;
+
     private String email;
+
+    @Column(name = "user_name")
     private String userName;
 
     private String location;
     private String image;
 
-    private String date;
+    private LocalDateTime date = LocalDateTime.now(); // 🔥 auto date
 
-    // 🔥 ADMIN RESPONSE
+    @Column(name = "admin_comment")
     private String adminComment;
 
-    // 🔥 OBSERVER ACTION
+    @Column(name = "observer_action_by")
     private String observerActionBy;
+
+    @Column(name = "observer_note")
     private String observerNote;
-    private String observerActionAt;
+
+    @Column(name = "observer_action_at")
+    private LocalDateTime observerActionAt;
 
     // ================= GETTERS & SETTERS =================
 
@@ -66,9 +76,11 @@ public class Report {
         return status;
     }
 
+    // 🔥 default status
     public void setStatus(String status) {
-        // 🔥 normalize (optional safe)
-        this.status = status;
+        this.status = (status == null || status.isEmpty())
+                ? "Pending"
+                : status;
     }
 
     public String getAssignedObserver() {
@@ -99,8 +111,9 @@ public class Report {
         return email;
     }
 
+    // 🔥 email normalize
     public void setEmail(String email) {
-        this.email = email;
+        this.email = email.toLowerCase();
     }
 
     public String getUserName() {
@@ -123,15 +136,18 @@ public class Report {
         return image;
     }
 
+    // 🔥 default image
     public void setImage(String image) {
-        this.image = image;
+        this.image = (image == null || image.isEmpty())
+                ? "/no-image.png"
+                : image;
     }
 
-    public String getDate() {
+    public LocalDateTime getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(LocalDateTime date) {
         this.date = date;
     }
 
@@ -159,11 +175,11 @@ public class Report {
         this.observerNote = observerNote;
     }
 
-    public String getObserverActionAt() {
+    public LocalDateTime getObserverActionAt() {
         return observerActionAt;
     }
 
-    public void setObserverActionAt(String observerActionAt) {
+    public void setObserverActionAt(LocalDateTime observerActionAt) {
         this.observerActionAt = observerActionAt;
     }
 }

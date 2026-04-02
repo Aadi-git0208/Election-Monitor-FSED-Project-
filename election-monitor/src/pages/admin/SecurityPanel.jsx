@@ -18,6 +18,8 @@ const ROLE_OPTIONS = [
   { key: "observer", label: "Observer Dashboard" },
 ];
 
+const normalizeRole = (role) => String(role || "").trim().toLowerCase();
+
 const getSystemData = () =>
   JSON.parse(localStorage.getItem("electionSystem")) || {
     users: [],
@@ -58,7 +60,7 @@ function SecurityPanel() {
       JSON.parse(sessionStorage.getItem("currentUser")),
     []
   );
-  const canManageTwoFactor = currentUser?.role === "admin";
+  const canManageTwoFactor = normalizeRole(currentUser?.role) === "admin";
 
   /* ================= LOAD DATA (NO useEffect) ================= */
   const [loginHistory] = useState(() => {

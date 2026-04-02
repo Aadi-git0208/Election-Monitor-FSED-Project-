@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import "./UserManagement.css";
 
 const getUserImage = (user) => {
@@ -11,25 +11,8 @@ const getUserImage = (user) => {
   );
 };
 
-const syncUsersToElectionSystem = (users) => {
-  const systemData =
-    JSON.parse(localStorage.getItem("electionSystem")) || {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    };
-
-  localStorage.setItem(
-    "electionSystem",
-    JSON.stringify({
-      ...systemData,
-      users,
-    })
-  );
-};
-
 function UserManagement({ onUsersUpdated }) {
+
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("all");
@@ -43,16 +26,27 @@ function UserManagement({ onUsersUpdated }) {
     password: "",
   });
 
-  useEffect(() => {
-    fetch("http://localhost:8080/api/users")
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data);
-        syncUsersToElectionSystem(data);
-        onUsersUpdated?.();
-      });
-  }, [onUsersUpdated]);
+  // 🔥 FETCH USERS FROM BACKEND
+  const fetchUsers = useCallback(async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/users/all");
+      const data = await res.json();
+      setUsers(data);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
 
+  useEffect(() => {
+    const kickoff = setTimeout(() => {
+      void fetchUsers();
+      onUsersUpdated?.();
+    }, 0);
+
+    return () => clearTimeout(kickoff);
+  }, [fetchUsers, onUsersUpdated]);
+
+  // 🔥 IMAGE UPLOAD (UI SAME)
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -67,46 +61,44 @@ function UserManagement({ onUsersUpdated }) {
     reader.readAsDataURL(file);
   };
 
+  // 🔥 ADD USER (BACKEND)
   const handleAddUser = async () => {
     if (!newUser.fullName || !newUser.email || !newUser.password) {
       alert("Please fill all required fields");
       return;
     }
 
-    const response = await fetch("http://localhost:8080/api/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fullName: newUser.fullName,
-        email: newUser.email,
-        password: newUser.password,
-        role: newUser.role,
-        profileImage: newUser.profileImage || "/default-profile.svg",
-        blocked: false,
-      }),
-    });
+    try {
+      await fetch("http://localhost:8080/api/users/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: newUser.fullName,
+          email: newUser.email.toLowerCase(),
+          password: newUser.password,
+          role: newUser.role.toUpperCase(),
+        }),
+      });
 
-    const data = await response.json();
+      setShowModal(false);
+      fetchUsers();
 
-    setUsers((prev) => {
-      const updatedUsers = [...prev, data];
-      syncUsersToElectionSystem(updatedUsers);
-      onUsersUpdated?.();
-      return updatedUsers;
-    });
+      setNewUser({
+        fullName: "",
+        email: "",
+        role: "citizen",
+        profileImage: "",
+        password: "",
+      });
 
-    setShowModal(false);
-    setNewUser({
-      fullName: "",
-      email: "",
-      role: "citizen",
-      profileImage: "",
-      password: "",
-    });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
+  // 🔥 DELETE USER
   const deleteUser = async (id) => {
     if (!window.confirm("Delete this user?")) return;
 
@@ -114,46 +106,44 @@ function UserManagement({ onUsersUpdated }) {
       method: "DELETE",
     });
 
-    setUsers((prev) => {
-      const updatedUsers = prev.filter((u) => u.id !== id);
-      syncUsersToElectionSystem(updatedUsers);
-      onUsersUpdated?.();
-      return updatedUsers;
-    });
+    fetchUsers();
   };
 
-  const toggleBlock = (id) => {
-    setUsers((prev) => {
-      const updatedUsers = prev.map((u) =>
-        u.id === id ? { ...u, blocked: !u.blocked } : u
-      );
-      syncUsersToElectionSystem(updatedUsers);
-      onUsersUpdated?.();
-      return updatedUsers;
+  // 🔥 BLOCK / UNBLOCK
+  const toggleBlock = async (id) => {
+    await fetch(`http://localhost:8080/api/users/block/${id}`, {
+      method: "PUT",
     });
+
+    fetchUsers();
   };
 
-  const changeRole = (id, newRole) => {
-    setUsers((prev) => {
-      const updatedUsers = prev.map((u) =>
-        u.id === id ? { ...u, role: newRole } : u
-      );
-      syncUsersToElectionSystem(updatedUsers);
-      onUsersUpdated?.();
-      return updatedUsers;
-    });
+  // 🔥 CHANGE ROLE
+  const changeRole = async (id, role) => {
+    await fetch(
+      `http://localhost:8080/api/users/role/${id}?role=${role}`,
+      {
+        method: "PUT",
+      }
+    );
+
+    fetchUsers();
   };
 
+  // 🔥 FILTER (UI SAME)
   const filteredUsers = users
     .filter((u) =>
       u.fullName?.toLowerCase().includes(search.toLowerCase())
     )
     .filter((u) =>
-      filterRole === "all" ? true : u.role === filterRole
+      filterRole === "all"
+        ? true
+        : u.role?.toLowerCase() === filterRole
     );
 
   return (
     <div className="user-management">
+
       <div className="header-row">
         <h2>User Management</h2>
         <button className="add-btn" onClick={() => setShowModal(true)}>
@@ -189,11 +179,12 @@ function UserManagement({ onUsersUpdated }) {
               alt="profile"
               className="card-img"
             />
-            <h3>{user.fullName || user.name || "User"}</h3>
+
+            <h3>{user.fullName}</h3>
             <p className="email">{user.email}</p>
 
             <select
-              value={user.role}
+              value={user.role?.toLowerCase()}
               onChange={(e) =>
                 changeRole(user.id, e.target.value)
               }
@@ -228,6 +219,7 @@ function UserManagement({ onUsersUpdated }) {
         ))}
       </div>
 
+      {/* MODAL SAME UI */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
@@ -241,11 +233,7 @@ function UserManagement({ onUsersUpdated }) {
               />
             )}
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
+            <input type="file" accept="image/*" onChange={handleImageUpload} />
 
             <input
               type="text"
@@ -298,6 +286,7 @@ function UserManagement({ onUsersUpdated }) {
                 Cancel
               </button>
             </div>
+
           </div>
         </div>
       )}

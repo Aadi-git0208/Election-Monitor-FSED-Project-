@@ -40,62 +40,50 @@ function Signup() {
     }
   };
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
+  // 🔥 FINAL SUBMIT (BACKEND)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (formData.password !== formData.confirmPassword) {
-    alert("Passwords do not match!");
-    return;
-  }
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
 
-  if (!formData.agree) {
-    alert("Please agree to Terms & Conditions");
-    return;
-  }
+    if (!formData.agree) {
+      alert("Please agree to Terms & Conditions");
+      return;
+    }
 
-  // 🔥 Get Master System Data
-const systemData =
-  JSON.parse(localStorage.getItem("electionSystem")) || {
-    users: [],
-    elections: [],
-    reports: [],
-    notifications: [],
+    try {
+      const res = await fetch("http://localhost:8080/api/users/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+          role: formData.role.toUpperCase(),
+        }),
+      });
+
+      const text = await res.text();
+
+      if (!res.ok) {
+        alert(text);
+        return;
+      }
+
+      alert("Signup Successful ✅");
+      navigate("/login");
+
+    } catch (err) {
+      console.error(err);
+      alert("Server error ❌");
+    }
   };
 
-// 🔎 Check existing user
-const userExists = systemData.users.find(
-  (user) => user.email === formData.email
-);
-
-if (userExists) {
-  alert("User already registered with this email!");
-  return;
-}
-
-// 🆕 Create new user
-const newUser = {
-  id: Date.now(),
-  fullName: formData.fullName,
-  email: formData.email,
-  mobile: formData.mobile,
-  password: formData.password,
-  role: formData.role,
-  profileImage: formData.profileImage || "/default-profile.svg",
-};
-
-// ✅ Push into electionSystem.users
-systemData.users.push(newUser);
-
-// 💾 Save back
-localStorage.setItem(
-  "electionSystem",
-  JSON.stringify(systemData)
-);
-
-  alert("Signup Successful! Please Login ✅");
-
-  navigate("/login");  
-};
   return (
     <div className="signup-page">
       <div className="signup-card">

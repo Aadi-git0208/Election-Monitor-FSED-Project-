@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./MyReports.css";
 
 const readStoredJson = (storage, key, fallback) => {
@@ -36,14 +36,8 @@ const getSystemData = () => {
   };
 };
 
-const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").trim();
-const USER_REPORTS_ENDPOINT = API_BASE_URL
-  ? `${API_BASE_URL.replace(/\/$/, "")}/api/reports/user`
-  : "";
-
 function MyReports() {
-  const [apiReports, setApiReports] = useState(null);
-  const [apiFailed, setApiFailed] = useState(false);
+  const [, setRefreshTick] = useState(0);
 
   const currentUser =
     readStoredJson(localStorage, "currentUser", null) ||
@@ -52,7 +46,7 @@ function MyReports() {
 
   const userEmail = String(currentUser?.email || "").trim().toLowerCase();
 
-  const localReports = useMemo(() => {
+  const localReports = (() => {
     if (!userEmail) {
       return [];
     }
@@ -64,44 +58,17 @@ function MyReports() {
       const reportEmail = String(report?.email || "").trim().toLowerCase();
       return reportEmail === userEmail;
     });
-  }, [userEmail]);
+  })();
 
-  // 🔥 FETCH FROM BACKEND
   useEffect(() => {
-    if (!userEmail || !USER_REPORTS_ENDPOINT) {
-      return;
-    }
+    const interval = setInterval(() => {
+      setRefreshTick((prev) => prev + 1);
+    }, 3000);
 
-    let cancelled = false;
-
-    fetch(`${USER_REPORTS_ENDPOINT}/${encodeURIComponent(userEmail)}`)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("API request failed"))))
-      .then((data) => {
-        if (cancelled) {
-          return;
-        }
-
-        setApiReports(Array.isArray(data) ? data : []);
-        setApiFailed(false);
-      })
-      .catch((err) => {
-        if (cancelled) {
-          return;
-        }
-
-        console.error(err);
-        setApiFailed(true);
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    return () => clearInterval(interval);
   }, [userEmail]);
 
-  const reports =
-    USER_REPORTS_ENDPOINT && !apiFailed && Array.isArray(apiReports)
-      ? apiReports
-      : localReports;
+  const reports = localReports;
 
   const getStatusClass = (status) => {
     if (status === "Assigned") return "status assigned";

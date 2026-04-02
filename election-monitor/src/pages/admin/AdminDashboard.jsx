@@ -19,52 +19,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const readStoredJson = (storage, key, fallback) => {
-  const raw = storage.getItem(key);
-
-  if (!raw) {
-    return fallback;
-  }
-
-  try {
-    return JSON.parse(raw);
-  } catch {
-    storage.removeItem(key);
-    return fallback;
-  }
-};
-
-const getSystemData = () => {
-  const parsed = readStoredJson(localStorage, "electionSystem", null);
-
-  if (!parsed || typeof parsed !== "object") {
-    return {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    };
-  }
-
-  return {
-    users: Array.isArray(parsed.users) ? parsed.users : [],
-    elections: Array.isArray(parsed.elections) ? parsed.elections : [],
-    reports: Array.isArray(parsed.reports) ? parsed.reports : [],
-    notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
-  };
-};
-
-const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").trim();
-const USERS_ENDPOINT = API_BASE_URL
-  ? `${API_BASE_URL.replace(/\/$/, "")}/api/users`
-  : "";
-const REPORTS_ENDPOINT = API_BASE_URL
-  ? `${API_BASE_URL.replace(/\/$/, "")}/api/reports`
-  : "";
-const ELECTIONS_ENDPOINT = API_BASE_URL
-  ? `${API_BASE_URL.replace(/\/$/, "")}/api/elections`
-  : "";
-
 const getUserImage = (user) => {
   return (
     user?.profileImage ||
@@ -89,95 +43,47 @@ function AdminDashboard() {
     totalReports: 0,
     totalElections: 0,
     reportsData: [],
-    observerSubmissions: [],
   });
 
   const currentUser =
-    readStoredJson(localStorage, "currentUser", null) ||
-    readStoredJson(sessionStorage, "currentUser", null);
+    JSON.parse(localStorage.getItem("currentUser")) ||
+    JSON.parse(sessionStorage.getItem("currentUser"));
 
-  // ✅ BACKEND DATA LOAD
-  const loadData = useCallback(async () => {
+  // 🔥 FETCH FROM BACKEND
+  const fetchDashboardData = useCallback(async () => {
     try {
-      let users = [];
-      let reports = [];
-      let elections = [];
+      const res = await fetch("http://localhost:8080/api/admin/dashboard");
+      const backendData = await res.json();
 
-      if (USERS_ENDPOINT && REPORTS_ENDPOINT && ELECTIONS_ENDPOINT) {
-        const [usersRes, reportsRes, electionsRes] = await Promise.all([
-          fetch(USERS_ENDPOINT),
-          fetch(REPORTS_ENDPOINT),
-          fetch(ELECTIONS_ENDPOINT),
-        ]);
+      setData((prev) => ({
+        ...prev,
+        totalCitizens: backendData.totalCitizens,
+        totalObservers: backendData.totalObservers,
+        totalAdmin: backendData.totalAdmin,
+        totalAnalysts: backendData.totalAnalysts,
+        totalReports: backendData.totalReports,
+        totalElections: backendData.totalElections,
+        reportsData: [], // graph future
+      }));
 
-        if (!usersRes.ok || !reportsRes.ok || !electionsRes.ok) {
-          throw new Error("Dashboard API request failed");
-        }
-
-        users = await usersRes.json();
-        reports = await reportsRes.json();
-        elections = await electionsRes.json();
-      } else {
-        const localData = getSystemData();
-        users = localData.users;
-        reports = localData.reports;
-        elections = localData.elections;
-      }
-
-      const safeUsers = Array.isArray(users) ? users : [];
-      const safeReports = Array.isArray(reports) ? reports : [];
-      const safeElections = Array.isArray(elections) ? elections : [];
-
-      const observerSubmissions =
-        readStoredJson(localStorage, "observer_submissions", []);
-
-      const citizens = safeUsers.filter((u) => u.role === "citizen");
-      const observers = safeUsers.filter((u) => u.role === "observer");
-      const adminUsers = safeUsers.filter((u) => u.role === "admin");
-      const analysts = safeUsers.filter((u) => u.role === "analyst");
-
-      setData({
-        totalCitizens: citizens.length,
-        totalObservers: observers.length,
-        totalAdmin: adminUsers.length,
-        totalAnalysts: analysts.length,
-        totalReports: safeReports.length,
-        totalElections: safeElections.length,
-        reportsData: safeReports,
-        observerSubmissions,
-      });
-
-    } catch (error) {
-      console.error("Error loading dashboard data, using local fallback:", error);
-
-      const localData = getSystemData();
-      const observerSubmissions =
-        readStoredJson(localStorage, "observer_submissions", []);
-
-      const citizens = localData.users.filter((u) => u.role === "citizen");
-      const observers = localData.users.filter((u) => u.role === "observer");
-      const adminUsers = localData.users.filter((u) => u.role === "admin");
-      const analysts = localData.users.filter((u) => u.role === "analyst");
-
-      setData({
-        totalCitizens: citizens.length,
-        totalObservers: observers.length,
-        totalAdmin: adminUsers.length,
-        totalAnalysts: analysts.length,
-        totalReports: localData.reports.length,
-        totalElections: localData.elections.length,
-        reportsData: localData.reports,
-        observerSubmissions,
-      });
+    } catch (err) {
+      console.error("Error fetching dashboard:", err);
     }
   }, []);
 
   useEffect(() => {
-    loadData();
-    const interval = setInterval(loadData, 3000);
-    return () => clearInterval(interval);
-  }, [loadData]);
+    const kickoff = setTimeout(() => {
+      void fetchDashboardData();
+    }, 0);
 
+    const interval = setInterval(fetchDashboardData, 5000);
+    return () => {
+      clearTimeout(kickoff);
+      clearInterval(interval);
+    };
+  }, [fetchDashboardData]);
+
+  // 🔥 GRAPH (UI same, data empty for now)
   const reportPerDay =
     data.reportsData?.reduce((acc, report) => {
       if (!report.date) return acc;
@@ -202,6 +108,7 @@ function AdminDashboard() {
   return (
     <div className="admin-layout">
 
+      {/* NAVBAR */}
       <div className="admin-navbar">
         <button
           className="menu-btn"
@@ -243,8 +150,10 @@ function AdminDashboard() {
         </div>
       </div>
 
+      {/* BODY */}
       <div className="admin-body">
 
+        {/* SIDEBAR */}
         <div className={`admin-sidebar ${sidebarOpen ? "open" : "closed"}`}>
           <ul>
             <li onClick={() => setActiveSection("dashboard")}>Dashboard Overview</li>
@@ -256,6 +165,7 @@ function AdminDashboard() {
           </ul>
         </div>
 
+        {/* MAIN CONTENT */}
         <div className={`admin-container ${sidebarOpen ? "shift" : ""}`}>
 
           {activeSection === "dashboard" && (
@@ -269,6 +179,7 @@ function AdminDashboard() {
                 <div className="card"><h3>Elections</h3><h2>{data.totalElections}</h2></div>
               </div>
 
+              {/* GRAPH SECTION (UI SAME) */}
               <div className="graph-section">
 
                 <div className="graph-card">

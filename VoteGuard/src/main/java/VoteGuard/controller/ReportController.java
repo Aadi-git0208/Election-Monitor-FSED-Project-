@@ -1,7 +1,7 @@
 package VoteGuard.controller;
 
 import VoteGuard.entity.Report;
-import VoteGuard.service.ReportService;
+import VoteGuard.repository.ReportRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,42 +14,36 @@ import java.util.List;
 public class ReportController {
 
     @Autowired
-    private ReportService service;
+    private ReportRepository reportRepository;
 
-    // ================= ADMIN =================
-
-    // GET ALL REPORTS
-    @GetMapping
-    public List<Report> getAll() {
-        return service.getAll();
+    // 🔥 GET ALL REPORTS
+    @GetMapping("/all")
+    public List<Report> getAllReports() {
+        return reportRepository.findAll();
     }
 
-    // ADD REPORT (admin side)
-    @PostMapping
-    public Report add(@RequestBody Report r) {
-        return service.save(r);
+    // 🔥 ASSIGN OBSERVER
+    @PutMapping("/assign/{id}")
+    public Report assignObserver(@PathVariable Long id, @RequestParam String observer) {
+
+        Report report = reportRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Report not found"));
+
+        report.setAssignedObserver(observer);
+        report.setStatus("Assigned");
+
+        return reportRepository.save(report);
     }
 
-    // ================= CITIZEN =================
+    // 🔥 ADD COMMENT
+    @PutMapping("/comment/{id}")
+    public Report addComment(@PathVariable Long id, @RequestParam String comment) {
 
-    // SUBMIT REPORT (citizen)
-    @PostMapping("/submit")
-    public Report submit(@RequestBody Report r) {
-        return service.submitReport(r);
-    }
+        Report report = reportRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Report not found"));
 
-    // GET USER REPORTS
-    @GetMapping("/user/{email}")
-    public List<Report> getUserReports(@PathVariable String email) {
-        return service.getReportsByEmail(email);
-    }
+        report.setAdminComment(comment);
 
-    // ================= ADMIN / OBSERVER =================
-
-    // UPDATE STATUS
-    @PutMapping("/{id}/status")
-    public Report updateStatus(@PathVariable Long id,
-                               @RequestParam String status) {
-        return service.updateStatus(id, status);
+        return reportRepository.save(report);
     }
 }

@@ -1,7 +1,7 @@
 package VoteGuard.controller;
 
 import VoteGuard.entity.Election;
-import VoteGuard.service.ElectionService;
+import VoteGuard.repository.ElectionRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -9,37 +9,40 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/elections")
 @CrossOrigin("*")
-@RequestMapping("/api/elections") // 🔥 IMPORTANT (add this)
 public class ElectionController {
 
     @Autowired
-    private ElectionService service;
+    private ElectionRepository electionRepository;
 
-    // ================= ADMIN =================
-
-    // GET ALL
-    @GetMapping
+    // 🔥 GET ALL
+    @GetMapping("/all")
     public List<Election> getAll() {
-        return service.getAll();
+        return electionRepository.findAll();
     }
 
-    // CREATE
-    @PostMapping
-    public Election create(@RequestBody Election e) {
-        return service.save(e);
+    // 🔥 CREATE
+    @PostMapping("/create")
+    public Election create(@RequestBody Election election) {
+        return electionRepository.save(election);
     }
 
-    // DELETE
+    // 🔥 DELETE
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        service.delete(id);
+    public String delete(@PathVariable Long id) {
+        electionRepository.deleteById(id);
+        return "Election Deleted";
     }
 
-    // ================= CITIZEN =================
+    // 🔥 TOGGLE ACTIVE
+    @PutMapping("/toggle/{id}")
+    public Election toggle(@PathVariable Long id) {
+        Election election = electionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Election not found"));
 
-    @GetMapping("/active")
-    public List<Election> getActiveElections() {
-        return service.getActiveElections();
+        election.setActive(!election.isActive());
+
+        return electionRepository.save(election);
     }
 }

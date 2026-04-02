@@ -1,17 +1,56 @@
 import React, { useEffect, useState } from "react";
 import "./LiveElectionTracker.css";
 
+const readStoredJson = (storage, key, fallback) => {
+  const raw = storage.getItem(key);
+
+  if (!raw) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    storage.removeItem(key);
+    return fallback;
+  }
+};
+
+const getSystemData = () => {
+  const parsed = readStoredJson(localStorage, "electionSystem", null);
+
+  if (!parsed || typeof parsed !== "object") {
+    return {
+      users: [],
+      elections: [],
+      reports: [],
+      notifications: [],
+    };
+  }
+
+  return {
+    users: Array.isArray(parsed.users) ? parsed.users : [],
+    elections: Array.isArray(parsed.elections) ? parsed.elections : [],
+    reports: Array.isArray(parsed.reports) ? parsed.reports : [],
+    notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
+  };
+};
+
 function LiveElectionTracker() {
 
   const [activeElections, setActiveElections] = useState([]);
   const [timeLeft, setTimeLeft] = useState({});
 
-  // 🔥 FETCH FROM BACKEND
   useEffect(() => {
-    fetch("http://localhost:8080/api/elections/active")
-      .then((res) => res.json())
-      .then((data) => setActiveElections(data))
-      .catch((err) => console.error(err));
+    const loadData = () => {
+      const systemData = getSystemData();
+      const elections = Array.isArray(systemData.elections) ? systemData.elections : [];
+      setActiveElections(elections.filter((election) => election.active));
+    };
+
+    loadData();
+    const interval = setInterval(loadData, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   // ⏳ TIMER (same logic)

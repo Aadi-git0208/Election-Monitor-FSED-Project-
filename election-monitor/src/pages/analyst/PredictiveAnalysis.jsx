@@ -1,18 +1,38 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./PredictiveAnalysis.css";
 
+const readStoredJson = (storage, key, fallback) => {
+  const raw = storage.getItem(key);
+
+  if (!raw) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    storage.removeItem(key);
+    return fallback;
+  }
+};
+
+const getReports = () => {
+  const systemData = readStoredJson(localStorage, "electionSystem", {
+    users: [],
+    elections: [],
+    reports: [],
+    notifications: [],
+  });
+
+  return Array.isArray(systemData?.reports) ? systemData.reports : [];
+};
+
 const PredictiveAnalysis = () => {
   const [reports, setReports] = useState([]);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const res = await fetch("http://localhost:8080/api/analyst/reports");
-        const data = await res.json();
-        setReports(data || []);
-      } catch (error) {
-        console.error("Error fetching predictive data:", error);
-      }
+    const loadData = () => {
+      setReports(getReports());
     };
 
     loadData();

@@ -36,16 +36,11 @@ const getSystemData = () => {
   };
 };
 
-const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || "").trim();
-const REPORT_SUBMIT_ENDPOINT = API_BASE_URL
-  ? `${API_BASE_URL.replace(/\/$/, "")}/api/reports/submit`
-  : "";
-
 function ReportIssue() {
 
   const currentUser =
-    readStoredJson(localStorage, "currentUser", null) ||
-    readStoredJson(sessionStorage, "currentUser", null) ||
+    JSON.parse(localStorage.getItem("currentUser")) ||
+    JSON.parse(sessionStorage.getItem("currentUser")) ||
     {};
 
   const [title, setTitle] = useState("");
@@ -53,42 +48,32 @@ function ReportIssue() {
   const [image, setImage] = useState(null);
   const [location, setLocation] = useState("");
 
-  // 📸 IMAGE UPLOAD
+  // 📸 IMAGE
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImage(reader.result);
-    };
+    reader.onloadend = () => setImage(reader.result);
     reader.readAsDataURL(file);
   };
 
   // 📍 LOCATION
   const handleGetLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation not supported");
-      return;
-    }
-
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const coords = `Lat: ${position.coords.latitude}, Lng: ${position.coords.longitude}`;
-        setLocation(coords);
+      (pos) => {
+        setLocation(`Lat: ${pos.coords.latitude}, Lng: ${pos.coords.longitude}`);
       },
-      () => {
-        alert("Unable to retrieve location");
-      }
+      () => alert("Location failed")
     );
   };
 
-  // 🔥 SUBMIT TO BACKEND
-  const handleSubmit = async (e) => {
+  // 🔥 SUBMIT (FRONTEND ONLY)
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!title || !description) {
-      alert("Please fill all required fields");
+      alert("Fill required fields");
       return;
     }
 
@@ -104,48 +89,35 @@ function ReportIssue() {
       status: "Pending",
     };
 
-    try {
-      let submittedToApi = false;
+    const systemData = getSystemData();
+    const reports = Array.isArray(systemData.reports) ? systemData.reports : [];
+    const nextId =
+      reports.length > 0
+        ? Math.max(...reports.map((report) => Number(report.id) || 0)) + 1
+        : 1;
 
-      if (REPORT_SUBMIT_ENDPOINT) {
-        const res = await fetch(REPORT_SUBMIT_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(reportPayload),
-        });
+    const updatedReports = [
+      {
+        ...reportPayload,
+        id: nextId,
+      },
+      ...reports,
+    ];
 
-        submittedToApi = res.ok;
-      }
+    localStorage.setItem(
+      "electionSystem",
+      JSON.stringify({
+        ...systemData,
+        reports: updatedReports,
+      })
+    );
 
-      if (!submittedToApi) {
-        const systemData = getSystemData();
-        const nextId =
-          systemData.reports.length > 0
-            ? Math.max(...systemData.reports.map((entry) => Number(entry.id) || 0)) + 1
-            : Date.now();
+    alert("✅ Report saved successfully!");
 
-        systemData.reports.push({
-          id: nextId,
-          ...reportPayload,
-        });
-
-        localStorage.setItem("electionSystem", JSON.stringify(systemData));
-      }
-
-      alert("Report Submitted Successfully!");
-
-      // reset form
-      setTitle("");
-      setDescription("");
-      setImage(null);
-      setLocation("");
-
-    } catch (err) {
-      console.error(err);
-      alert("Failed to submit report");
-    }
+    setTitle("");
+    setDescription("");
+    setImage(null);
+    setLocation("");
   };
 
   return (
@@ -168,21 +140,15 @@ function ReportIssue() {
           required
         />
 
-        <input
-          type="file"
-          accept="image/*,video/*"
-          onChange={handleImageUpload}
-        />
+        <input type="file" onChange={handleImageUpload} />
 
         <button type="button" onClick={handleGetLocation}>
-          Get Current Location
+          Get Location
         </button>
 
-        {location && <p className="location-text">{location}</p>}
+        {location && <p>{location}</p>}
 
-        <button type="submit" className="submit-btn">
-          Submit Report
-        </button>
+        <button type="submit">Submit Report</button>
       </form>
     </div>
   );

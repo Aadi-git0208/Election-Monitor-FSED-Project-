@@ -1,7 +1,7 @@
 package VoteGuard.controller;
 
 import VoteGuard.entity.User;
-import VoteGuard.service.UserService;
+import VoteGuard.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,39 +14,40 @@ import java.util.List;
 public class UserController {
 
     @Autowired
-    private UserService service;
+    private UserRepository userRepository;
 
-    // ================= ADMIN =================
-
-    // GET ALL USERS
-    @GetMapping
+    // 🔥 GET ALL USERS
+    @GetMapping("/all")
     public List<User> getAllUsers() {
-        return service.getAllUsers();
+        return userRepository.findAll();
     }
 
-    // ADD USER
-    @PostMapping
-    public User addUser(@RequestBody User user) {
-        return service.saveUser(user);
-    }
-
-    // DELETE USER
+    // 🔥 DELETE USER
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
-        service.deleteUser(id);
+    public String deleteUser(@PathVariable Long id) {
+        userRepository.deleteById(id);
+        return "User Deleted Successfully";
     }
 
-    // ================= CITIZEN =================
+    // 🔥 BLOCK / UNBLOCK USER
+    @PutMapping("/block/{id}")
+    public User toggleBlock(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    // REGISTER
-    @PostMapping("/register")
-    public User register(@RequestBody User user) {
-        return service.register(user);
+        user.setBlocked(!user.isBlocked());
+
+        return userRepository.save(user);
     }
 
-    // LOGIN
-    @PostMapping("/login")
-    public User login(@RequestBody User user) {
-        return service.login(user.getEmail(), user.getPassword());
+    // 🔥 CHANGE ROLE
+    @PutMapping("/role/{id}")
+    public User changeRole(@PathVariable Long id, @RequestParam String role) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setRole(role.toUpperCase());
+
+        return userRepository.save(user);
     }
 }

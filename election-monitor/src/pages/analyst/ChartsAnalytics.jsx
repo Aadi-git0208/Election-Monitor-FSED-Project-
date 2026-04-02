@@ -13,54 +13,74 @@ import {
   Legend,
 } from "recharts";
 
+const readStoredJson = (storage, key, fallback) => {
+  const raw = storage.getItem(key);
+
+  if (!raw) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    storage.removeItem(key);
+    return fallback;
+  }
+};
+
+const getReports = () => {
+  const systemData = readStoredJson(localStorage, "electionSystem", {
+    users: [],
+    elections: [],
+    reports: [],
+    notifications: [],
+  });
+
+  return Array.isArray(systemData?.reports) ? systemData.reports : [];
+};
+
 const ChartsAnalytics = () => {
   const [statusChartData, setStatusChartData] = useState([]);
   const [dailyChartData, setDailyChartData] = useState([]);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const res = await fetch("http://localhost:8080/api/analyst/reports");
-        const reports = await res.json();
+    const loadData = () => {
+      const reports = getReports();
 
-        // ===== SAME LOGIC (no change) =====
-        const statusCounts = {
-          Pending: 0,
-          Assigned: 0,
-          Resolved: 0,
-          Rejected: 0,
-        };
+      const statusCounts = {
+        Pending: 0,
+        Assigned: 0,
+        Resolved: 0,
+        Rejected: 0,
+      };
 
-        reports.forEach((report) => {
-          const status = report.status || "Pending";
-          if (!statusCounts[status]) {
-            statusCounts[status] = 0;
-          }
-          statusCounts[status] += 1;
-        });
+      reports.forEach((report) => {
+        const status = report.status || "Pending";
+        if (!statusCounts[status]) {
+          statusCounts[status] = 0;
+        }
+        statusCounts[status] += 1;
+      });
 
-        setStatusChartData(
-          Object.keys(statusCounts).map((status) => ({
-            status,
-            count: statusCounts[status],
-          }))
-        );
+      setStatusChartData(
+        Object.keys(statusCounts).map((status) => ({
+          status,
+          count: statusCounts[status],
+        }))
+      );
 
-        const dailyCounts = reports.reduce((acc, report) => {
-          const key = report.date || "Unknown";
-          acc[key] = (acc[key] || 0) + 1;
-          return acc;
-        }, {});
+      const dailyCounts = reports.reduce((acc, report) => {
+        const key = report.date || "Unknown";
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
 
-        setDailyChartData(
-          Object.keys(dailyCounts).map((date) => ({
-            date,
-            count: dailyCounts[date],
-          }))
-        );
-      } catch (error) {
-        console.error("Error fetching chart data:", error);
-      }
+      setDailyChartData(
+        Object.keys(dailyCounts).map((date) => ({
+          date,
+          count: dailyCounts[date],
+        }))
+      );
     };
 
     loadData();

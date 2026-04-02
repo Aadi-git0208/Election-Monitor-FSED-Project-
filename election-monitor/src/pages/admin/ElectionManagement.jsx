@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import "./ElectionManagement.css";
 
 function ElectionManagement() {
@@ -15,66 +15,81 @@ function ElectionManagement() {
     active: false,
   });
 
-  // ✅ FETCH FROM BACKEND
-  useEffect(() => {
-    fetch("http://localhost:8080/api/elections")
-      .then(res => res.json())
-      .then(data => setElections(data));
+  // 🔥 FETCH ELECTIONS
+  const fetchElections = useCallback(async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/elections/all");
+      const data = await res.json();
+      setElections(data);
+    } catch (err) {
+      console.error(err);
+    }
   }, []);
 
-  // ✅ CREATE ELECTION (POST)
+  useEffect(() => {
+    const kickoff = setTimeout(() => {
+      void fetchElections();
+    }, 0);
+
+    return () => clearTimeout(kickoff);
+  }, [fetchElections]);
+
+  // 🔥 CREATE ELECTION
   const handleCreate = async () => {
     if (!newElection.title || !newElection.startDate || !newElection.endDate) {
       alert("Please fill all required fields");
       return;
     }
 
-    const response = await fetch("http://localhost:8080/api/elections", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: newElection.title,
-        startDate: newElection.startDate,
-        endDate: newElection.endDate,
+    try {
+      await fetch("http://localhost:8080/api/elections/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: newElection.title,
+          startDate: newElection.startDate,
+          endDate: newElection.endDate,
+          active: false,
+        }),
+      });
+
+      setShowModal(false);
+      fetchElections();
+
+      setNewElection({
+        title: "",
+        startDate: "",
+        endDate: "",
+        candidates: "",
+        observers: "",
         active: false,
-      }),
-    });
+      });
 
-    const data = await response.json();
-
-    setElections([...elections, data]);
-
-    setShowModal(false);
-    setNewElection({
-      title: "",
-      startDate: "",
-      endDate: "",
-      candidates: "",
-      observers: "",
-      active: false,
-    });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  // ❗ ACTIVE TOGGLE (frontend only for now)
-  const toggleActive = (id) => {
-    setElections(
-      elections.map((election) =>
-        election.id === id
-          ? { ...election, active: !election.active }
-          : election
-      )
-    );
+  // 🔥 ACTIVATE / DEACTIVATE
+  const toggleActive = async (id) => {
+    await fetch(`http://localhost:8080/api/elections/toggle/${id}`, {
+      method: "PUT",
+    });
+
+    fetchElections();
   };
 
-  // ✅ DELETE ELECTION
+  // 🔥 DELETE
   const deleteElection = async (id) => {
+    if (!window.confirm("Delete this election?")) return;
+
     await fetch(`http://localhost:8080/api/elections/${id}`, {
       method: "DELETE",
     });
 
-    setElections(elections.filter((e) => e.id !== id));
+    fetchElections();
   };
 
   return (
@@ -101,40 +116,54 @@ function ElectionManagement() {
         </thead>
 
         <tbody>
-          {elections.map((election) => (
-            <tr key={election.id}>
-              <td>{election.title}</td>
-              <td>{election.startDate}</td>
-              <td>{election.endDate}</td>
-              <td>-</td>
-              <td>-</td>
-              <td>
-                {election.active ? (
-                  <span className="active">Active</span>
-                ) : (
-                  <span className="inactive">Inactive</span>
-                )}
-              </td>
-              <td>
-                <button
-                  className="activate-btn"
-                  onClick={() => toggleActive(election.id)}
-                >
-                  {election.active ? "Deactivate" : "Activate"}
-                </button>
-
-                <button
-                  className="delete-btn"
-                  onClick={() => deleteElection(election.id)}
-                >
-                  Delete
-                </button>
+          {elections.length === 0 ? (
+            <tr>
+              <td colSpan="7" className="no-data">
+                No Elections Found
               </td>
             </tr>
-          ))}
+          ) : (
+            elections.map((election) => (
+              <tr key={election.id}>
+
+                <td>{election.title}</td>
+                <td>{election.startDate}</td>
+                <td>{election.endDate}</td>
+
+                <td>-</td>
+                <td>-</td>
+
+                <td>
+                  {election.active ? (
+                    <span className="active">Active</span>
+                  ) : (
+                    <span className="inactive">Inactive</span>
+                  )}
+                </td>
+
+                <td>
+                  <button
+                    className="activate-btn"
+                    onClick={() => toggleActive(election.id)}
+                  >
+                    {election.active ? "Deactivate" : "Activate"}
+                  </button>
+
+                  <button
+                    className="delete-btn"
+                    onClick={() => deleteElection(election.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
 
+      {/* MODAL SAME UI */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
@@ -189,6 +218,7 @@ function ElectionManagement() {
               <button className="save-btn" onClick={handleCreate}>
                 Save
               </button>
+
               <button
                 className="cancel-btn"
                 onClick={() => setShowModal(false)}

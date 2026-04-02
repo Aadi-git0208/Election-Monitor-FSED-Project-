@@ -1,6 +1,41 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./AnalystDashboard.css";
 
+const readStoredJson = (storage, key, fallback) => {
+  const raw = storage.getItem(key);
+
+  if (!raw) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    storage.removeItem(key);
+    return fallback;
+  }
+};
+
+const getSystemData = () => {
+  const parsed = readStoredJson(localStorage, "electionSystem", null);
+
+  if (!parsed || typeof parsed !== "object") {
+    return {
+      users: [],
+      elections: [],
+      reports: [],
+      notifications: [],
+    };
+  }
+
+  return {
+    users: Array.isArray(parsed.users) ? parsed.users : [],
+    elections: Array.isArray(parsed.elections) ? parsed.elections : [],
+    reports: Array.isArray(parsed.reports) ? parsed.reports : [],
+    notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
+  };
+};
+
 const AnalystDashboard = () => {
   const [systemData, setSystemData] = useState({
     reports: [],
@@ -8,23 +43,12 @@ const AnalystDashboard = () => {
   });
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [reportsRes, electionsRes] = await Promise.all([
-          fetch("http://localhost:8080/api/analyst/reports"),
-          fetch("http://localhost:8080/api/analyst/elections"),
-        ]);
-
-        const reports = await reportsRes.json();
-        const elections = await electionsRes.json();
-
-        setSystemData({
-          reports: reports || [],
-          elections: elections || [],
-        });
-      } catch (error) {
-        console.error("Error fetching analyst data:", error);
-      }
+    const loadData = () => {
+      const data = getSystemData();
+      setSystemData({
+        reports: data.reports,
+        elections: data.elections,
+      });
     };
 
     loadData();
@@ -32,8 +56,8 @@ const AnalystDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const reports = systemData.reports || [];
-  const elections = systemData.elections || [];
+  const reports = systemData.reports;
+  const elections = systemData.elections;
 
   const summary = useMemo(() => {
     const pending = reports.filter((report) => report.status === "Pending").length;
