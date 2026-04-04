@@ -1,39 +1,16 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./AnalystDashboard.css";
 
-const readStoredJson = (storage, key, fallback) => {
-  const raw = storage.getItem(key);
-
-  if (!raw) {
-    return fallback;
+const normalizeListResponse = (payload, listKey) => {
+  if (Array.isArray(payload)) {
+    return payload;
   }
 
-  try {
-    return JSON.parse(raw);
-  } catch {
-    storage.removeItem(key);
-    return fallback;
-  }
-};
-
-const getSystemData = () => {
-  const parsed = readStoredJson(localStorage, "electionSystem", null);
-
-  if (!parsed || typeof parsed !== "object") {
-    return {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    };
+  if (payload && typeof payload === "object" && Array.isArray(payload[listKey])) {
+    return payload[listKey];
   }
 
-  return {
-    users: Array.isArray(parsed.users) ? parsed.users : [],
-    elections: Array.isArray(parsed.elections) ? parsed.elections : [],
-    reports: Array.isArray(parsed.reports) ? parsed.reports : [],
-    notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
-  };
+  return [];
 };
 
 const AnalystDashboard = () => {
@@ -42,19 +19,45 @@ const AnalystDashboard = () => {
     elections: [],
   });
 
-  useEffect(() => {
-    const loadData = () => {
-      const data = getSystemData();
-      setSystemData({
-        reports: data.reports,
-        elections: data.elections,
-      });
-    };
+  const fetchAnalystData = useCallback(async () => {
+    try {
+      const [reportsRes, electionsRes] = await Promise.allSettled([
+        fetch("http://localhost:8080/api/reports/all"),
+        fetch("http://localhost:8080/api/elections/all"),
+      ]);
 
-    loadData();
-    const interval = setInterval(loadData, 3000); // auto refresh
-    return () => clearInterval(interval);
+      let reports = [];
+      let elections = [];
+
+      if (reportsRes.status === "fulfilled") {
+        const reportsPayload = await reportsRes.value.json();
+        reports = normalizeListResponse(reportsPayload, "reports");
+      }
+
+      if (electionsRes.status === "fulfilled") {
+        const electionsPayload = await electionsRes.value.json();
+        elections = normalizeListResponse(electionsPayload, "elections");
+      }
+
+      setSystemData({
+        reports,
+        elections,
+      });
+    } catch (error) {
+      console.error("Error fetching analyst data:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    // Initial fetch
+    (async () => {
+      await fetchAnalystData();
+    })();
+    
+    // Set up interval
+    const interval = setInterval(fetchAnalystData, 10000); // auto refresh every 10 seconds
+    return () => clearInterval(interval);
+  }, [fetchAnalystData]);
 
   const reports = systemData.reports;
   const elections = systemData.elections;

@@ -1,38 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "./NotificationsPanel.css";
 
-const readStoredJson = (storage, key, fallback) => {
-  const raw = storage.getItem(key);
-
-  if (!raw) {
-    return fallback;
+const normalizeListResponse = (payload, listKey) => {
+  if (Array.isArray(payload)) {
+    return payload;
   }
 
-  try {
-    return JSON.parse(raw);
-  } catch {
-    storage.removeItem(key);
-    return fallback;
+  if (payload && typeof payload === "object" && Array.isArray(payload[listKey])) {
+    return payload[listKey];
   }
-};
 
-const getReports = () => {
-  const systemData = readStoredJson(localStorage, "electionSystem", {
-    users: [],
-    elections: [],
-    reports: [],
-    notifications: [],
-  });
-
-  return Array.isArray(systemData?.reports) ? systemData.reports : [];
+  return [];
 };
 
 const NotificationsPanel = () => {
   const [notifications, setNotifications] = useState([]);
 
-  useEffect(() => {
-    const loadData = () => {
-      const reports = getReports();
+  const fetchNotificationsData = useCallback(async () => {
+    try {
+      const reportsRes = await fetch("http://localhost:8080/api/reports/all");
+
+      if (!reportsRes.ok) {
+        throw new Error("Failed to fetch reports");
+      }
+
+      const reportsPayload = await reportsRes.json();
+      const reports = normalizeListResponse(reportsPayload, "reports");
 
       const pending = reports.filter((report) => report.status === "Pending").length;
       const assigned = reports.filter((report) => report.status === "Assigned").length;
@@ -71,12 +64,19 @@ const NotificationsPanel = () => {
       }
 
       setNotifications(derivedAlerts.slice(0, 30));
-    };
-
-    loadData();
-    const interval = setInterval(loadData, 3000); // auto refresh
-    return () => clearInterval(interval);
+    } catch (error) {
+      console.error("Error fetching notifications data:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      await fetchNotificationsData();
+    })();
+
+    const interval = setInterval(fetchNotificationsData, 10000); // auto refresh every 10 seconds
+    return () => clearInterval(interval);
+  }, [fetchNotificationsData]);
 
   return (
     <div className="notification-container analyst-module-card">

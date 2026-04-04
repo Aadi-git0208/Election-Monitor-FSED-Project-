@@ -14,35 +14,44 @@ public class ReportService {
     @Autowired
     private ReportRepository repo;
 
-    // ================= ADMIN FEATURES =================
+    // ================= COMMON =================
 
-    public List<Report> getAll() {
+    public List<Report> getAllReports() {
         return repo.findAll();
     }
 
-    public Report save(Report r) {
-        return repo.save(r);
+    public Report saveReport(Report report) {
+        return repo.save(report);
     }
 
-    // 🔥 Assign report to observer
-    public Report assignReport(Long reportId, Long observerId, String observerName) {
-        Report report = repo.findById(reportId).orElse(null);
+    // ================= ADMIN FEATURES =================
 
-        if (report != null) {
-            report.setAssignedObserverId(observerId);   // 🔥 important
-            report.setAssignedObserver(observerName);   // optional (for display)
-            report.setStatus("Assigned");
+    public Report assignObserver(Long reportId, Long observerId, String observerName) {
 
-            return repo.save(report);
-        }
+        Report report = repo.findById(reportId)
+                .orElseThrow(() -> new RuntimeException("Report not found"));
 
-        return null;
+        report.setAssignedObserverId(observerId);
+        report.setAssignedObserver(observerName);
+        report.setStatus("Assigned");
+
+        return repo.save(report);
+    }
+
+    public Report addAdminComment(Long id, String comment) {
+
+        Report report = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Report not found"));
+
+        report.setAdminComment(comment);
+        return repo.save(report);
     }
 
     // ================= CITIZEN FEATURES =================
 
     public Report submitReport(Report report) {
         report.setStatus("Pending");
+        report.setDate(LocalDateTime.now());
         return repo.save(report);
     }
 
@@ -52,45 +61,68 @@ public class ReportService {
 
     // ================= OBSERVER FEATURES =================
 
-    // 🔥 Get reports assigned to observer
     public List<Report> getReportsForObserver(Long observerId) {
         return repo.findByAssignedObserverId(observerId);
     }
 
-    // 🔥 Verify / Reject / Note
     public Report updateReportDecision(Long reportId, String decision, String note, String observerName) {
 
-        Report report = repo.findById(reportId).orElse(null);
+        Report report = repo.findById(reportId)
+                .orElseThrow(() -> new RuntimeException("Report not found"));
 
-        if (report != null) {
-
-            // ✅ decision logic
-            if (decision.equalsIgnoreCase("verified")) {
-                report.setStatus("Resolved");
-            } else {
-                report.setStatus("Rejected");
-            }
-
-            report.setObserverNote(note);
-            report.setObserverActionBy(observerName);
-            report.setObserverActionAt(LocalDateTime.now());
-
-            return repo.save(report);
+        if (decision.equalsIgnoreCase("verified")) {
+            report.setStatus("Resolved");
+        } else {
+            report.setStatus("Rejected");
         }
 
-        return null;
+        report.setObserverNote(note);
+        report.setObserverActionBy(observerName);
+        report.setObserverActionAt(LocalDateTime.now());
+
+        return repo.save(report);
     }
 
-    // ================= EXTRA (WORKFLOW) =================
+    // ================= ANALYST FEATURES =================
+
+    public Report analystReview(Long id, String priority, String tag, String comment) {
+
+        Report report = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Report not found"));
+
+        report.setAnalystReviewed(true);
+        report.setAnalystPriority(priority);
+        report.setAnalystTag(tag);
+        report.setAnalystComment(comment);
+        report.setAnalystReviewedAt(LocalDateTime.now());
+
+        return repo.save(report);
+    }
+
+    public List<Report> getReportsByStatus(String status) {
+        return repo.findByStatus(status);
+    }
+
+    public List<Report> getReportsByPriority(String priority) {
+        return repo.findByAnalystPriority(priority);
+    }
+
+    public List<Report> getReportsByTag(String tag) {
+        return repo.findByAnalystTag(tag);
+    }
+
+    public List<Report> getReportsByDateRange(LocalDateTime start, LocalDateTime end) {
+        return repo.findByDateBetween(start, end);
+    }
+
+    // ================= EXTRA =================
 
     public Report updateStatus(Long id, String status) {
-        Report report = repo.findById(id).orElse(null);
 
-        if (report != null) {
-            report.setStatus(status);
-            return repo.save(report);
-        }
+        Report report = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Report not found"));
 
-        return null;
+        report.setStatus(status);
+        return repo.save(report);
     }
 }

@@ -1,44 +1,46 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./PredictiveAnalysis.css";
 
-const readStoredJson = (storage, key, fallback) => {
-  const raw = storage.getItem(key);
-
-  if (!raw) {
-    return fallback;
+const normalizeListResponse = (payload, listKey) => {
+  if (Array.isArray(payload)) {
+    return payload;
   }
 
-  try {
-    return JSON.parse(raw);
-  } catch {
-    storage.removeItem(key);
-    return fallback;
+  if (payload && typeof payload === "object" && Array.isArray(payload[listKey])) {
+    return payload[listKey];
   }
-};
 
-const getReports = () => {
-  const systemData = readStoredJson(localStorage, "electionSystem", {
-    users: [],
-    elections: [],
-    reports: [],
-    notifications: [],
-  });
-
-  return Array.isArray(systemData?.reports) ? systemData.reports : [];
+  return [];
 };
 
 const PredictiveAnalysis = () => {
   const [reports, setReports] = useState([]);
 
-  useEffect(() => {
-    const loadData = () => {
-      setReports(getReports());
-    };
+  const fetchPredictiveData = useCallback(async () => {
+    try {
+      const reportsRes = await fetch("http://localhost:8080/api/reports/all");
 
-    loadData();
-    const interval = setInterval(loadData, 3000); 
-    return () => clearInterval(interval);
+      if (!reportsRes.ok) {
+        throw new Error("Failed to fetch reports");
+      }
+
+      const reportsPayload = await reportsRes.json();
+      const fetchedReports = normalizeListResponse(reportsPayload, "reports");
+
+      setReports(fetchedReports);
+    } catch (error) {
+      console.error("Error fetching predictive data:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      await fetchPredictiveData();
+    })();
+
+    const interval = setInterval(fetchPredictiveData, 10000); // auto refresh every 10 seconds
+    return () => clearInterval(interval);
+  }, [fetchPredictiveData]);
 
   const analysis = useMemo(() => {
     const total = reports.length;

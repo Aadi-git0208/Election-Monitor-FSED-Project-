@@ -1,39 +1,16 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./ExportReports.css";
 
-const readStoredJson = (storage, key, fallback) => {
-  const raw = storage.getItem(key);
-
-  if (!raw) {
-    return fallback;
+const normalizeListResponse = (payload, listKey) => {
+  if (Array.isArray(payload)) {
+    return payload;
   }
 
-  try {
-    return JSON.parse(raw);
-  } catch {
-    storage.removeItem(key);
-    return fallback;
-  }
-};
-
-const getSystemData = () => {
-  const parsed = readStoredJson(localStorage, "electionSystem", null);
-
-  if (!parsed || typeof parsed !== "object") {
-    return {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    };
+  if (payload && typeof payload === "object" && Array.isArray(payload[listKey])) {
+    return payload[listKey];
   }
 
-  return {
-    users: Array.isArray(parsed.users) ? parsed.users : [],
-    elections: Array.isArray(parsed.elections) ? parsed.elections : [],
-    reports: Array.isArray(parsed.reports) ? parsed.reports : [],
-    notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
-  };
+  return [];
 };
 
 const ExportReports = () => {
@@ -42,21 +19,50 @@ const ExportReports = () => {
     reports: [],
     elections: [],
   });
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    const loadData = () => {
-      const data = getSystemData();
+  const currentUser =
+    JSON.parse(localStorage.getItem("currentUser")) ||
+    JSON.parse(sessionStorage.getItem("currentUser")) ||
+    {};
+
+  const fetchExportData = useCallback(async () => {
+    try {
+      const [reportsRes, electionsRes] = await Promise.allSettled([
+        fetch("http://localhost:8080/api/reports/all"),
+        fetch("http://localhost:8080/api/elections/all"),
+      ]);
+
+      let reports = [];
+      let elections = [];
+
+      if (reportsRes.status === "fulfilled") {
+        const reportsPayload = await reportsRes.value.json();
+        reports = normalizeListResponse(reportsPayload, "reports");
+      }
+
+      if (electionsRes.status === "fulfilled") {
+        const electionsPayload = await electionsRes.value.json();
+        elections = normalizeListResponse(electionsPayload, "elections");
+      }
 
       setSystemData({
-        reports: data.reports || [],
-        elections: data.elections || [],
+        reports: reports || [],
+        elections: elections || [],
       });
-    };
-
-    loadData();
-    const interval = setInterval(loadData, 3000); // auto refresh
-    return () => clearInterval(interval);
+    } catch (error) {
+      console.error("Error fetching export data:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      await fetchExportData();
+    })();
+
+    const interval = setInterval(fetchExportData, 10000); // auto refresh every 10 seconds
+    return () => clearInterval(interval);
+  }, [fetchExportData]);
 
   const reports = useMemo(
     () => (Array.isArray(systemData.reports) ? systemData.reports : []),
@@ -66,11 +72,6 @@ const ExportReports = () => {
     () => (Array.isArray(systemData.elections) ? systemData.elections : []),
     [systemData.elections]
   );
-
-  const currentUser =
-    JSON.parse(localStorage.getItem("currentUser")) ||
-    JSON.parse(sessionStorage.getItem("currentUser")) ||
-    {};
 
   const reportSummary = useMemo(() => {
     const pending = reports.filter((report) => report.status === "Pending").length;
@@ -108,7 +109,7 @@ const ExportReports = () => {
         report.id,
         report.title || "",
         report.status || "Pending",
-        report.assignedObserver || "", // 🔥 fixed field name
+        report.assignedObserver || "",
         report.date || "",
         report.location || "",
       ]
@@ -149,35 +150,42 @@ const ExportReports = () => {
     setMessage("Elections CSV exported successfully.");
   };
 
-  const submitInsightToAdmin = () => {
-    const analystSubmissions =
-      JSON.parse(localStorage.getItem("analyst_submissions")) || [];
+  const submitInsightToAdmin = async () => {
+    setSubmitting(true);
+    try {
+      const payload = {
+        analyst: currentUser?.fullName || currentUser?.name || "Analyst",
+        submittedAt: new Date().toISOString(),
+        summary: {
+          totalReports: reports.length,
+          pending: reportSummary.pending,
+          assigned: reportSummary.assigned,
+          resolved: reportSummary.resolved,
+          rejected: reportSummary.rejected,
+          activeElections: elections.filter((election) => election.active).length,
+        },
+      };
 
-    const nextId =
-      analystSubmissions.length > 0
-        ? Math.max(...analystSubmissions.map((entry) => Number(entry.id) || 0)) + 1
-        : 1;
+      const response = await fetch(
+        "http://localhost:8080/api/analyst/submissions",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
-    const payload = {
-      id: nextId,
-      analyst: currentUser?.fullName || currentUser?.name || "Analyst",
-      submittedAt: new Date().toISOString(),
-      summary: {
-        totalReports: reports.length,
-        pending: reportSummary.pending,
-        assigned: reportSummary.assigned,
-        resolved: reportSummary.resolved,
-        rejected: reportSummary.rejected,
-        activeElections: elections.filter((election) => election.active).length,
-      },
-    };
+      if (!response.ok) {
+        throw new Error("Failed to submit insight");
+      }
 
-    localStorage.setItem(
-      "analyst_submissions",
-      JSON.stringify([payload, ...analystSubmissions].slice(0, 100))
-    );
-
-    setMessage("Insight submitted to admin.");
+      setMessage("Insight submitted to admin successfully.");
+    } catch (error) {
+      console.error("Error submitting insight:", error);
+      setMessage("Failed to submit insight. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -187,7 +195,9 @@ const ExportReports = () => {
       <div className="export-actions">
         <button onClick={exportReportsCSV}>Export Reports CSV</button>
         <button onClick={exportElectionsCSV}>Export Elections CSV</button>
-        <button onClick={submitInsightToAdmin}>Submit Insight to Admin</button>
+        <button onClick={submitInsightToAdmin} disabled={submitting}>
+          {submitting ? "Submitting..." : "Submit Insight to Admin"}
+        </button>
       </div>
 
       <div className="export-summary">

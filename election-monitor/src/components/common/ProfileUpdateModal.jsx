@@ -9,17 +9,6 @@ const getCurrentUser = () => {
   );
 };
 
-const getSystemData = () => {
-  return (
-    JSON.parse(localStorage.getItem("electionSystem")) || {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    }
-  );
-};
-
 function ProfileUpdateModal({ onClose }) {
   const initialUser = getCurrentUser() || {};
 
@@ -34,6 +23,7 @@ function ProfileUpdateModal({ onClose }) {
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const persistCurrentUser = (updatedUser) => {
     const hasLocalSession = !!localStorage.getItem("currentUser");
@@ -52,42 +42,6 @@ function ProfileUpdateModal({ onClose }) {
     }
   };
 
-  const updateSystemUser = (updater) => {
-    const currentUser = getCurrentUser();
-
-    if (!currentUser) {
-      alert("User session not found. Please login again.");
-      return null;
-    }
-
-    const systemData = getSystemData();
-    const users = Array.isArray(systemData.users) ? systemData.users : [];
-
-    const updatedUsers = users.map((user) => {
-      const isTarget =
-        (currentUser.id && user.id === currentUser.id) ||
-        (currentUser.email && user.email === currentUser.email);
-
-      return isTarget ? updater(user) : user;
-    });
-
-    const updatedUser = updatedUsers.find(
-      (user) =>
-        (currentUser.id && user.id === currentUser.id) ||
-        (currentUser.email && user.email === currentUser.email)
-    );
-
-    localStorage.setItem(
-      "electionSystem",
-      JSON.stringify({
-        ...systemData,
-        users: updatedUsers,
-      })
-    );
-
-    return updatedUser;
-  };
-
   const handleImageUpload = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -97,54 +51,102 @@ function ProfileUpdateModal({ onClose }) {
     reader.readAsDataURL(file);
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!fullName.trim()) {
       alert("Full name is required.");
       return;
     }
 
-    const updatedUser = updateSystemUser((user) => ({
-      ...user,
-      fullName: fullName.trim(),
-      mobile: mobile.trim(),
-      profileImage: profileImage || user.profileImage || "/default-profile.svg",
-    }));
+    setLoading(true);
+    try {
+      const userId = initialUser?.id || initialUser?.userId;
+      if (!userId) {
+        alert("User ID not found. Please login again.");
+        setLoading(false);
+        return;
+      }
 
-    if (!updatedUser) {
-      return;
+      const updatePayload = {
+        fullName: fullName.trim(),
+        mobile: mobile.trim(),
+        profileImage: profileImage || "/default-profile.svg",
+      };
+
+      const response = await fetch(
+        `http://localhost:8080/api/users/${userId}/profile`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatePayload),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(errorData.message || "Failed to update profile");
+        setLoading(false);
+        return;
+      }
+
+      const updatedUser = await response.json();
+      persistCurrentUser(updatedUser);
+      alert("Profile updated successfully.");
+      onClose();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Error updating profile. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    persistCurrentUser(updatedUser);
-    alert("Profile updated successfully.");
-    onClose();
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (!currentPassword || !newPassword) {
       alert("Both current and new password are required.");
       return;
     }
 
-    const activeUser = getCurrentUser();
+    setLoading(true);
+    try {
+      const userId = initialUser?.id || initialUser?.userId;
+      if (!userId) {
+        alert("User ID not found. Please login again.");
+        setLoading(false);
+        return;
+      }
 
-    if ((activeUser?.password || "") !== currentPassword) {
-      alert("Current password is incorrect.");
-      return;
+      const passwordPayload = {
+        currentPassword,
+        newPassword,
+      };
+
+      const response = await fetch(
+        `http://localhost:8080/api/users/${userId}/password`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(passwordPayload),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(errorData.message || "Failed to change password");
+        setLoading(false);
+        return;
+      }
+
+      const updatedUser = await response.json();
+      persistCurrentUser(updatedUser);
+      setCurrentPassword("");
+      setNewPassword("");
+      alert("Password changed successfully.");
+    } catch (error) {
+      console.error("Error changing password:", error);
+      alert("Error changing password. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    const updatedUser = updateSystemUser((user) => ({
-      ...user,
-      password: newPassword,
-    }));
-
-    if (!updatedUser) {
-      return;
-    }
-
-    persistCurrentUser(updatedUser);
-    setCurrentPassword("");
-    setNewPassword("");
-    alert("Password changed successfully.");
   };
 
   return (
@@ -187,8 +189,8 @@ function ProfileUpdateModal({ onClose }) {
           </div>
 
           <div className="profile-update-actions">
-            <button type="button" onClick={handleSaveProfile}>
-              Save Changes
+            <button type="button" onClick={handleSaveProfile} disabled={loading}>
+              {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>
 
@@ -200,6 +202,7 @@ function ProfileUpdateModal({ onClose }) {
               placeholder="Current password"
               value={currentPassword}
               onChange={(event) => setCurrentPassword(event.target.value)}
+              disabled={loading}
             />
 
             <input
@@ -207,10 +210,11 @@ function ProfileUpdateModal({ onClose }) {
               placeholder="New password"
               value={newPassword}
               onChange={(event) => setNewPassword(event.target.value)}
+              disabled={loading}
             />
 
-            <button type="button" onClick={handleChangePassword}>
-              Update Password
+            <button type="button" onClick={handleChangePassword} disabled={loading}>
+              {loading ? "Updating..." : "Update Password"}
             </button>
           </div>
         </div>

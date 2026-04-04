@@ -6,12 +6,32 @@ import java.util.List;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
-    // 🔹 Citizen ke liye (already tha)
+    // ================= CITIZEN =================
     List<Report> findByEmail(String email);
 
-    // 🔥 Observer ke liye (NEW - IMPORTANT)
+    // ================= OBSERVER =================
     List<Report> findByAssignedObserverId(Long observerId);
-
-    // 🔥 Optional (agar name-based bhi rakhna hai fallback ke liye)
     List<Report> findByAssignedObserverIgnoreCase(String assignedObserver);
+
+    // ================= ANALYST (🔥 NEW) =================
+
+    List<Report> findByStatus(String status);
+
+    List<Report> findByCategory(String category);
+
+    List<Report> findByLocation(String location);
+
+    List<Report> findByAnalystReviewed(Boolean reviewed);
+
+    List<Report> findByAnalystPriority(String priority);
+
+    List<Report> findByAnalystTag(String tag);
+
+    List<Report> findByDateBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
+
+    List<Report> findByStatusAndCategory(String status, String category);
+
+    List<Report> findByStatusAndLocation(String status, String location);
+
+    List<Report> findByStatusIn(List<String> statuses);
 }

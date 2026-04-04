@@ -1,39 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "./DataOverview.css";
 
-const readStoredJson = (storage, key, fallback) => {
-  const raw = storage.getItem(key);
-
-  if (!raw) {
-    return fallback;
+const normalizeListResponse = (payload, listKey) => {
+  if (Array.isArray(payload)) {
+    return payload;
   }
 
-  try {
-    return JSON.parse(raw);
-  } catch {
-    storage.removeItem(key);
-    return fallback;
+  if (payload && typeof payload === "object" && Array.isArray(payload[listKey])) {
+    return payload[listKey];
   }
+
+  return [];
 };
 
-const getSystemData = () => {
-  const parsed = readStoredJson(localStorage, "electionSystem", null);
+const getReportDateKey = (report) => {
+  const rawDate =
+    report?.date ||
+    report?.createdAt ||
+    report?.reportDate ||
+    report?.submittedAt ||
+    report?.timestamp;
 
-  if (!parsed || typeof parsed !== "object") {
-    return {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    };
-  }
+  if (!rawDate) return null;
 
-  return {
-    users: Array.isArray(parsed.users) ? parsed.users : [],
-    elections: Array.isArray(parsed.elections) ? parsed.elections : [],
-    reports: Array.isArray(parsed.reports) ? parsed.reports : [],
-    notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
-  };
+  const parsed = new Date(rawDate);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return parsed.toISOString().split("T")[0];
 };
 
 const DataOverview = () => {
@@ -51,12 +44,27 @@ const DataOverview = () => {
   });
   const [reportsPerDay, setReportsPerDay] = useState([]);
 
-  useEffect(() => {
-    const loadData = () => {
-      const data = getSystemData();
-      const reports = Array.isArray(data.reports) ? data.reports : [];
-      const elections = Array.isArray(data.elections) ? data.elections : [];
+  const fetchOverviewData = useCallback(async () => {
+    try {
+      const [reportsRes, electionsRes] = await Promise.allSettled([
+        fetch("http://localhost:8080/api/reports/all"),
+        fetch("http://localhost:8080/api/elections/all"),
+      ]);
 
+      let reports = [];
+      let elections = [];
+
+      if (reportsRes.status === "fulfilled") {
+        const reportsPayload = await reportsRes.value.json();
+        reports = normalizeListResponse(reportsPayload, "reports");
+      }
+
+      if (electionsRes.status === "fulfilled") {
+        const electionsPayload = await electionsRes.value.json();
+        elections = normalizeListResponse(electionsPayload, "elections");
+      }
+
+      // Calculate report statistics
       setReportStats({
         total: reports.length,
         pending: reports.filter((item) => item.status === "Pending").length,
@@ -65,30 +73,43 @@ const DataOverview = () => {
         rejected: reports.filter((item) => item.status === "Rejected").length,
       });
 
+      // Calculate election statistics
       setElectionStats({
         total: elections.length,
         active: elections.filter((item) => item.active).length,
         inactive: elections.filter((item) => !item.active).length,
       });
 
+      // Calculate reports per day
       const groupedByDate = reports.reduce((acc, report) => {
-        const key = report.date || "Unknown";
-        acc[key] = (acc[key] || 0) + 1;
+        const dateKey = getReportDateKey(report);
+        if (dateKey) {
+          acc[dateKey] = (acc[dateKey] || 0) + 1;
+        }
         return acc;
       }, {});
 
       setReportsPerDay(
-        Object.keys(groupedByDate).map((date) => ({
-          date,
-          count: groupedByDate[date],
-        }))
+        Object.keys(groupedByDate)
+          .sort()
+          .map((date) => ({
+            date,
+            count: groupedByDate[date],
+          }))
       );
-    };
-
-    loadData();
-    const interval = setInterval(loadData, 3000); // auto refresh
-    return () => clearInterval(interval);
+    } catch (error) {
+      console.error("Error fetching overview data:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      await fetchOverviewData();
+    })();
+
+    const interval = setInterval(fetchOverviewData, 10000); // auto refresh every 10 seconds
+    return () => clearInterval(interval);
+  }, [fetchOverviewData]);
 
   return (
     <div className="overview-wrapper analyst-module-card">

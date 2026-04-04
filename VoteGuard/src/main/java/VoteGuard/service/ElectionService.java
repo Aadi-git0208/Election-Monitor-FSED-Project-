@@ -27,7 +27,6 @@ public class ElectionService {
         repo.deleteById(id);
     }
 
-    // 🔥 NEW: Assign election to observer
     public Election assignElection(Long electionId, Long observerId) {
         Election election = repo.findById(electionId).orElse(null);
 

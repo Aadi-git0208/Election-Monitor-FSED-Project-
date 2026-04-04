@@ -16,13 +16,32 @@ public class Report {
 
     private String status = "Pending";
 
-    // OLD (for display)
+    // ================= OBSERVER =================
+
     @Column(name = "assigned_observer")
     private String assignedObserver;
 
-    // NEW (IMPORTANT 🔥)
     @Column(name = "assigned_observer_id")
     private Long assignedObserverId;
+
+    // ================= ANALYST =================
+
+    @Column(name = "analyst_reviewed")
+    private Boolean analystReviewed = false;
+
+    @Column(name = "analyst_priority")
+    private String analystPriority;
+
+    @Column(name = "analyst_tag")
+    private String analystTag;
+
+    @Column(name = "analyst_comment")
+    private String analystComment;
+
+    @Column(name = "analyst_reviewed_at")
+    private LocalDateTime analystReviewedAt;
+
+    // ================= USER =================
 
     private String category;
 
@@ -38,8 +57,12 @@ public class Report {
 
     private LocalDateTime date = LocalDateTime.now();
 
+    // ================= ADMIN =================
+
     @Column(name = "admin_comment")
     private String adminComment;
+
+    // ================= OBSERVER ACTION =================
 
     @Column(name = "observer_action_by")
     private String observerActionBy;
@@ -53,7 +76,8 @@ public class Report {
     // ================= GETTERS & SETTERS =================
 
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+
+    // -------- BASIC --------
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -66,6 +90,8 @@ public class Report {
         this.status = (status == null || status.isEmpty()) ? "Pending" : status;
     }
 
+    // -------- OBSERVER --------
+
     public String getAssignedObserver() { return assignedObserver; }
     public void setAssignedObserver(String assignedObserver) {
         this.assignedObserver = assignedObserver;
@@ -75,6 +101,36 @@ public class Report {
     public void setAssignedObserverId(Long assignedObserverId) {
         this.assignedObserverId = assignedObserverId;
     }
+
+    // -------- ANALYST (FIXED 🔥) --------
+
+    public Boolean isAnalystReviewed() { return analystReviewed; }
+
+    public void setAnalystReviewed(Boolean analystReviewed) {
+        this.analystReviewed = analystReviewed;
+    }
+
+    public String getAnalystPriority() { return analystPriority; }
+    public void setAnalystPriority(String analystPriority) {
+        this.analystPriority = analystPriority;
+    }
+
+    public String getAnalystTag() { return analystTag; }
+    public void setAnalystTag(String analystTag) {
+        this.analystTag = analystTag;
+    }
+
+    public String getAnalystComment() { return analystComment; }
+    public void setAnalystComment(String analystComment) {
+        this.analystComment = analystComment;
+    }
+
+    public LocalDateTime getAnalystReviewedAt() { return analystReviewedAt; }
+    public void setAnalystReviewedAt(LocalDateTime analystReviewedAt) {
+        this.analystReviewedAt = analystReviewedAt;
+    }
+
+    // -------- USER --------
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
@@ -98,8 +154,14 @@ public class Report {
     public LocalDateTime getDate() { return date; }
     public void setDate(LocalDateTime date) { this.date = date; }
 
+    // -------- ADMIN --------
+
     public String getAdminComment() { return adminComment; }
-    public void setAdminComment(String adminComment) { this.adminComment = adminComment; }
+    public void setAdminComment(String adminComment) {
+        this.adminComment = adminComment;
+    }
+
+    // -------- OBSERVER ACTION --------
 
     public String getObserverActionBy() { return observerActionBy; }
     public void setObserverActionBy(String observerActionBy) {

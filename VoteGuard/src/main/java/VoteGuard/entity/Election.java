@@ -76,7 +76,7 @@ public class Election {
         this.candidates = candidates;
     }
 
-    // 🔥 NEW GETTER/SETTER
+   
 
     public Long getObserverId() {
         return observerId;
