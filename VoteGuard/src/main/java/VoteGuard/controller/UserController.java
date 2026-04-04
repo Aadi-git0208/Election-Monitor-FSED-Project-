@@ -16,20 +16,17 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
-    // 🔥 GET ALL USERS
     @GetMapping("/all")
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    // 🔥 DELETE USER
     @DeleteMapping("/{id}")
     public String deleteUser(@PathVariable Long id) {
         userRepository.deleteById(id);
         return "User Deleted Successfully";
     }
 
-    // 🔥 BLOCK / UNBLOCK USER
     @PutMapping("/block/{id}")
     public User toggleBlock(@PathVariable Long id) {
         User user = userRepository.findById(id)
@@ -40,7 +37,6 @@ public class UserController {
         return userRepository.save(user);
     }
 
-    // 🔥 CHANGE ROLE
     @PutMapping("/role/{id}")
     public User changeRole(@PathVariable Long id, @RequestParam String role) {
         User user = userRepository.findById(id)

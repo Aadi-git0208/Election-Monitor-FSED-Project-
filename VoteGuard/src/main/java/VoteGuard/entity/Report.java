@@ -102,7 +102,7 @@ public class Report {
         this.assignedObserverId = assignedObserverId;
     }
 
-    // -------- ANALYST (FIXED 🔥) --------
+    // -------- ANALYST--------
 
     public Boolean isAnalystReviewed() { return analystReviewed; }
 

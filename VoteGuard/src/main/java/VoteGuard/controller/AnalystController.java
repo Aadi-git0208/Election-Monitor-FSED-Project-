@@ -21,7 +21,6 @@ public class AnalystController {
     @Autowired
     private ElectionService electionService;
 
-    // 🔥 DASHBOARD DATA (ALL IN ONE)
     @GetMapping("/dashboard")
     public Map<String, Object> getDashboardData() {
 
@@ -40,7 +39,6 @@ public class AnalystController {
         return reportService.getAllReports();
     }
 
-    // 🔥 ELECTIONS ONLY
     @GetMapping("/elections")
     public List<Election> getAllElections() {
         return electionService.getAll();

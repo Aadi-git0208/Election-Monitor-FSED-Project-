@@ -13,7 +13,6 @@ public class AuthService {
     @Autowired
     private UserRepository userRepository;
 
-    // 🔥 SIGNUP
     public String register(SignupRequest request) {
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -32,7 +31,6 @@ public class AuthService {
         return "User registered successfully ✅";
     }
 
-    // 🔥 LOGIN
     public User login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())

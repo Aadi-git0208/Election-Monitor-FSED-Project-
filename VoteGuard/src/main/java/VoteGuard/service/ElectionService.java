@@ -46,7 +46,6 @@ public class ElectionService {
 
     // ================= OBSERVER FEATURES =================
 
-    // 🔥 NEW: Get elections for observer
     public List<Election> getObserverElections(Long observerId) {
         return repo.findByObserverId(observerId);
     }

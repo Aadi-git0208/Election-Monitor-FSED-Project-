@@ -17,7 +17,6 @@ public class Election {
 
     private boolean active = false; 
 
-    // 🔥 ADD THIS (MOST IMPORTANT)
     @Column(name = "observer_id")
     private Long observerId;
 

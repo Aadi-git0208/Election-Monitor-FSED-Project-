@@ -33,7 +33,6 @@ public class AdminController {
         List<Report> reports = reportRepo.findAll();
         List<Election> elections = electionRepo.findAll();
 
-        // 🔥 SAFE ROLE CHECK (FINAL FIX)
         long citizens = users.stream()
                 .filter(u -> "citizen".equalsIgnoreCase(
                         u.getRole() == null ? "" : u.getRole().trim()))

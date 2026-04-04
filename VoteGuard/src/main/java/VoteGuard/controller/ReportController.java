@@ -43,7 +43,6 @@ public class ReportController {
 
     // ================= ADMIN =================
 
-    // 🔥 Assign observer (UPDATED 🔥)
     @PutMapping("/assign/{id}")
     public Report assignObserver(
             @PathVariable Long id,
@@ -53,14 +52,13 @@ public class ReportController {
         Report report = reportRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Report not found"));
 
-        report.setAssignedObserverId(observerId);   // 🔥 IMPORTANT
-        report.setAssignedObserver(observerName);   // display
+        report.setAssignedObserverId(observerId);   
+        report.setAssignedObserver(observerName);   
         report.setStatus("Assigned");
 
         return reportRepository.save(report);
     }
 
-    // 🔥 Add admin comment
     @PutMapping("/comment/{id}")
     public Report addComment(
             @PathVariable Long id,
@@ -76,13 +74,11 @@ public class ReportController {
 
     // ================= OBSERVER =================
 
-    // 🔥 Get reports for observer
     @GetMapping("/observer/{observerId}")
     public List<Report> getObserverReports(@PathVariable Long observerId) {
         return reportService.getReportsForObserver(observerId);
     }
 
-    // 🔥 Verify / Reject / Add Note
     @PutMapping("/{id}/decision")
     public Report updateDecision(
             @PathVariable Long id,

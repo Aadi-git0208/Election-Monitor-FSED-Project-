@@ -13,7 +13,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     List<Report> findByAssignedObserverId(Long observerId);
     List<Report> findByAssignedObserverIgnoreCase(String assignedObserver);
 
-    // ================= ANALYST (🔥 NEW) =================
+    // ================= ANALYST =================
 
     List<Report> findByStatus(String status);
 

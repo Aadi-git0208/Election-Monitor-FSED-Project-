@@ -16,26 +16,22 @@ public class ElectionController {
     @Autowired
     private ElectionRepository electionRepository;
 
-    // 🔥 GET ALL
     @GetMapping("/all")
     public List<Election> getAll() {
         return electionRepository.findAll();
     }
 
-    // 🔥 CREATE
     @PostMapping("/create")
     public Election create(@RequestBody Election election) {
         return electionRepository.save(election);
     }
 
-    // 🔥 DELETE
     @DeleteMapping("/{id}")
     public String delete(@PathVariable Long id) {
         electionRepository.deleteById(id);
         return "Election Deleted";
     }
 
-    // 🔥 TOGGLE ACTIVE
     @PutMapping("/toggle/{id}")
     public Election toggle(@PathVariable Long id) {
         Election election = electionRepository.findById(id)
@@ -46,7 +42,6 @@ public class ElectionController {
         return electionRepository.save(election);
     }
 
-    // 🔥 NEW (MOST IMPORTANT)
     @GetMapping("/observer/{observerId}")
     public List<Election> getObserverElections(@PathVariable Long observerId) {
         return electionRepository.findByObserverId(observerId);
