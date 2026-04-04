@@ -1,74 +1,50 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "./MyReports.css";
 
-const readStoredJson = (storage, key, fallback) => {
-  const raw = storage.getItem(key);
-
-  if (!raw) {
-    return fallback;
-  }
-
-  try {
-    return JSON.parse(raw);
-  } catch {
-    storage.removeItem(key);
-    return fallback;
-  }
-};
-
-const getSystemData = () => {
-  const parsed = readStoredJson(localStorage, "electionSystem", null);
-
-  if (!parsed || typeof parsed !== "object") {
-    return {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    };
-  }
-
-  return {
-    users: Array.isArray(parsed.users) ? parsed.users : [],
-    elections: Array.isArray(parsed.elections) ? parsed.elections : [],
-    reports: Array.isArray(parsed.reports) ? parsed.reports : [],
-    notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
-  };
-};
-
 function MyReports() {
-  const [, setRefreshTick] = useState(0);
+
+  const [reports, setReports] = useState([]);
 
   const currentUser =
-    readStoredJson(localStorage, "currentUser", null) ||
-    readStoredJson(sessionStorage, "currentUser", null) ||
+    JSON.parse(localStorage.getItem("currentUser")) ||
+    JSON.parse(sessionStorage.getItem("currentUser")) ||
     null;
 
   const userEmail = String(currentUser?.email || "").trim().toLowerCase();
 
-  const localReports = (() => {
-    if (!userEmail) {
-      return [];
+  // 🔥 FETCH FROM BACKEND (ONLY CHANGE)
+  const fetchReports = useCallback(async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/reports/all");
+      const data = await res.json();
+
+      const filtered = Array.isArray(data)
+        ? data.filter((report) => {
+            const reportEmail = String(report?.email || "")
+              .trim()
+              .toLowerCase();
+            return reportEmail === userEmail;
+          })
+        : [];
+
+      setReports(filtered);
+
+    } catch (err) {
+      console.error("Error:", err);
     }
-
-    const systemData = getSystemData();
-    const allReports = Array.isArray(systemData.reports) ? systemData.reports : [];
-
-    return allReports.filter((report) => {
-      const reportEmail = String(report?.email || "").trim().toLowerCase();
-      return reportEmail === userEmail;
-    });
-  })();
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRefreshTick((prev) => prev + 1);
-    }, 3000);
-
-    return () => clearInterval(interval);
   }, [userEmail]);
 
-  const reports = localReports;
+  useEffect(() => {
+    const kickoff = setTimeout(() => {
+      void fetchReports();
+    }, 0);
+
+    const interval = setInterval(fetchReports, 3000);
+    return () => {
+      clearTimeout(kickoff);
+      clearInterval(interval);
+    };
+  }, [fetchReports]);
 
   const getStatusClass = (status) => {
     if (status === "Assigned") return "status assigned";
@@ -88,6 +64,7 @@ function MyReports() {
       ) : (
         reports.map((report) => (
           <div key={report.id} className="report-card">
+
             <div className="report-header">
               <h3>{report.title}</h3>
               <span className={getStatusClass(report.status)}>
@@ -137,6 +114,7 @@ function MyReports() {
               <strong>Date Submitted:</strong>{" "}
               {report.date || "N/A"}
             </div>
+
           </div>
         ))
       )}

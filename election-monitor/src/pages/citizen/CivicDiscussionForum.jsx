@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "./CivicDiscussionForum.css";
 
 function CivicForum() {
+
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState("");
   const [commentInputs, setCommentInputs] = useState({});
@@ -10,141 +11,84 @@ function CivicForum() {
     JSON.parse(localStorage.getItem("currentUser")) ||
     JSON.parse(sessionStorage.getItem("currentUser"));
 
-  /* ================= LOAD DATA ================= */
-
-  useEffect(() => {
-    const loadPosts = () => {
-      const systemData =
-        JSON.parse(localStorage.getItem("electionSystem")) || {
-          users: [],
-          elections: [],
-          reports: [],
-          notifications: [],
-          forumPosts: [],
-        };
-
-      if (!systemData.forumPosts) {
-        systemData.forumPosts = [];
-        localStorage.setItem(
-          "electionSystem",
-          JSON.stringify(systemData)
-        );
-      }
-
-      setPosts(systemData.forumPosts);
-    };
-
-    loadPosts();
-    const interval = setInterval(loadPosts, 1000);
-    return () => clearInterval(interval);
+  const fetchPosts = useCallback(async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/forum/all");
+      const data = await res.json();
+      setPosts(data);
+    } catch (err) {
+      console.error(err);
+    }
   }, []);
 
-  /* ================= SAVE TO STORAGE ================= */
+  useEffect(() => {
+    const kickoff = setTimeout(() => {
+      void fetchPosts();
+    }, 0);
 
-  const updateStorage = (updatedPosts) => {
-    const systemData =
-      JSON.parse(localStorage.getItem("electionSystem")) || {};
+    const interval = setInterval(fetchPosts, 3000);
+    return () => {
+      clearTimeout(kickoff);
+      clearInterval(interval);
+    };
+  }, [fetchPosts]);
 
-    systemData.forumPosts = updatedPosts;
-
-    localStorage.setItem(
-      "electionSystem",
-      JSON.stringify(systemData)
-    );
-
-    setPosts(updatedPosts);
-  };
-
-  /* ================= CREATE POST ================= */
-
-  const handleCreatePost = () => {
+  const handleCreatePost = async () => {
     if (!newPost.trim()) {
       alert("Write something to post");
       return;
     }
 
-    const newForumPost = {
-      id: crypto.randomUUID(),
-      userName: currentUser?.fullName || currentUser?.name,
-      userEmail: currentUser?.email,
-      content: newPost,
-      likes: 0,
-      likedBy: [],
-      comments: [],
-      date: new Date().toLocaleString(),
-    };
-
-    const updated = [newForumPost, ...posts];
-    updateStorage(updated);
-    setNewPost("");
-  };
-
-  /* ================= LIKE ================= */
-
-  const handleLike = (postId) => {
-    const updated = posts.map((post) => {
-      if (post.id === postId) {
-        const alreadyLiked = post.likedBy.includes(
-          currentUser.email
-        );
-
-        return {
-          ...post,
-          likes: alreadyLiked
-            ? post.likes - 1
-            : post.likes + 1,
-          likedBy: alreadyLiked
-            ? post.likedBy.filter(
-                (email) => email !== currentUser.email
-              )
-            : [...post.likedBy, currentUser.email],
-        };
-      }
-      return post;
+    await fetch("http://localhost:8080/api/forum/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userName: currentUser?.fullName,
+        userEmail: currentUser?.email,
+        content: newPost,
+      }),
     });
 
-    updateStorage(updated);
+    setNewPost("");
+    fetchPosts();
   };
 
-  /* ================= COMMENT ================= */
+  
+  const handleLike = async (postId) => {
+    await fetch(`http://localhost:8080/api/forum/like/${postId}`, {
+      method: "PUT",
+    });
 
-  const handleAddComment = (postId) => {
+    fetchPosts();
+  };
+
+  const handleAddComment = async (postId) => {
     const commentText = commentInputs[postId];
     if (!commentText) return;
 
-    const updated = posts.map((post) => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          comments: [
-            ...post.comments,
-            {
-              id: Date.now(),
-              userName:
-                currentUser?.fullName ||
-                currentUser?.name,
-              text: commentText,
-              date: new Date().toLocaleString(),
-            },
-          ],
-        };
+    await fetch(
+      `http://localhost:8080/api/forum/comment/${postId}?text=${commentText}&user=${currentUser?.fullName}`,
+      {
+        method: "POST",
       }
-      return post;
-    });
-
-    updateStorage(updated);
+    );
 
     setCommentInputs({
       ...commentInputs,
       [postId]: "",
     });
+
+    fetchPosts();
   };
 
   return (
     <div className="forum-container">
+
       <h2>Civic Discussion Forum</h2>
 
-      {/* ================= RULES ================= */}
+      {/* RULES SAME */}
       <div className="forum-rules">
         <h4>Moderation Rules</h4>
         <ul>
@@ -155,24 +99,26 @@ function CivicForum() {
         </ul>
       </div>
 
-      {/* ================= POST SECTION ================= */}
+      {/* POST BOX SAME */}
       <div className="post-box">
         <textarea
           placeholder="Start a civic discussion..."
           value={newPost}
           onChange={(e) => setNewPost(e.target.value)}
         />
+
         <button onClick={handleCreatePost}>
           Post Discussion
         </button>
       </div>
 
-      {/* ================= POSTS ================= */}
+      {/* POSTS */}
       {posts.length === 0 ? (
         <p>No discussions yet.</p>
       ) : (
         posts.map((post) => (
           <div key={post.id} className="forum-post">
+
             <div className="post-header">
               <strong>{post.userName}</strong>
               <span>{post.date}</span>
@@ -182,16 +128,16 @@ function CivicForum() {
 
             <div className="post-actions">
               <button onClick={() => handleLike(post.id)}>
-                👍 {post.likes}
+                👍 {post.likes || 0}
               </button>
             </div>
 
             {/* COMMENTS */}
             <div className="comment-section">
-              {post.comments.map((comment) => (
-                <div key={comment.id} className="comment">
-                  <strong>{comment.userName}</strong>:{" "}
-                  {comment.text}
+
+              {(post.comments || []).map((comment, index) => (
+                <div key={index} className="comment">
+                  <strong>{comment.userName}</strong>: {comment.text}
                 </div>
               ))}
 
@@ -207,15 +153,14 @@ function CivicForum() {
                     })
                   }
                 />
-                <button
-                  onClick={() =>
-                    handleAddComment(post.id)
-                  }
-                >
+
+                <button onClick={() => handleAddComment(post.id)}>
                   Comment
                 </button>
               </div>
+
             </div>
+
           </div>
         ))
       )}

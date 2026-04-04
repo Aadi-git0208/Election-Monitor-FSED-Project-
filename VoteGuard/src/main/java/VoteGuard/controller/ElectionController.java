@@ -45,4 +45,10 @@ public class ElectionController {
 
         return electionRepository.save(election);
     }
+
+    // 🔥 NEW (MOST IMPORTANT)
+    @GetMapping("/observer/{observerId}")
+    public List<Election> getObserverElections(@PathVariable Long observerId) {
+        return electionRepository.findByObserverId(observerId);
+    }
 }

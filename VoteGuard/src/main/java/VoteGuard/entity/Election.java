@@ -17,6 +17,10 @@ public class Election {
 
     private boolean active = false; 
 
+    // 🔥 ADD THIS (MOST IMPORTANT)
+    @Column(name = "observer_id")
+    private Long observerId;
+
     @ElementCollection
     @CollectionTable(name = "election_candidates", joinColumns = @JoinColumn(name = "election_id"))
     @Column(name = "candidate_name")
@@ -70,5 +74,15 @@ public class Election {
 
     public void setCandidates(List<String> candidates) {
         this.candidates = candidates;
+    }
+
+    // 🔥 NEW GETTER/SETTER
+
+    public Long getObserverId() {
+        return observerId;
+    }
+
+    public void setObserverId(Long observerId) {
+        this.observerId = observerId;
     }
 }

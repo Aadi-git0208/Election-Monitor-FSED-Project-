@@ -244,6 +244,43 @@
   color: #0d47a1;
 }
 
+.observer-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 110px;
+}
+
+.observer-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.observer-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.observer-verify {
+  background: #d8fbe8;
+  color: #0b8c47;
+}
+
+.observer-false {
+  background: #ffe0df;
+  color: #cf3d3b;
+}
+
+.observer-note {
+  background: #fff0cc;
+  color: #b7791f;
+}
+
 .observer-badge {
   border-radius: 20px;
   font-size: 12px;

@@ -1,46 +1,24 @@
 import React, { useEffect, useState } from "react";
+
 import "./ObserverDashboard.css";
 import ProfileUpdateModal from "../../components/common/ProfileUpdateModal";
-
-const EMPTY_SYSTEM_DATA = {
-  users: [],
-  elections: [],
-  reports: [],
-  notifications: [],
-};
-
-const getSystemData = () => {
-  try {
-    const parsed = JSON.parse(localStorage.getItem("electionSystem"));
-
-    if (!parsed || typeof parsed !== "object") {
-      return EMPTY_SYSTEM_DATA;
-    }
-
-    return {
-      users: Array.isArray(parsed.users) ? parsed.users : [],
-      elections: Array.isArray(parsed.elections) ? parsed.elections : [],
-      reports: Array.isArray(parsed.reports) ? parsed.reports : [],
-      notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
-    };
-  } catch {
-    return EMPTY_SYSTEM_DATA;
-  }
-};
-
-const getObserverActivity = () => {
-  try {
-    const parsed = JSON.parse(localStorage.getItem("observer_activity"));
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
 
 const normalizeText = (value) =>
   String(value || "")
     .trim()
     .toLowerCase();
+
+const normalizeListResponse = (payload, listKey) => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && typeof payload === "object" && Array.isArray(payload[listKey])) {
+    return payload[listKey];
+  }
+
+  return [];
+};
 
 const splitToNormalizedItems = (value) => {
   if (Array.isArray(value)) {
@@ -55,6 +33,11 @@ const splitToNormalizedItems = (value) => {
       .split(",")
       .map((item) => normalizeText(item))
       .filter(Boolean);
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    const normalized = normalizeText(value);
+    return normalized ? [normalized] : [];
   }
 
   return [];
@@ -110,72 +93,18 @@ const getStatusBadge = (election) => {
   };
 };
 
-const appendCitizenNotification = ({ report, observerName, status }) => {
-  const systemData = getSystemData();
-
-  const matchedUser = (systemData.users || []).find(
-    (user) => user.id === report?.userId
-  );
-
-  const targetEmail = report?.email || matchedUser?.email;
-
-  if (!targetEmail) {
-    return;
-  }
-
-  const currentNotifications = Array.isArray(systemData.notifications)
-    ? systemData.notifications
-    : [];
-
-  const nextId =
-    currentNotifications.length > 0
-      ? Math.max(...currentNotifications.map((entry) => Number(entry.id) || 0)) + 1
-      : 1;
-
-  const notification = {
-    id: nextId,
-    userEmail: targetEmail,
-    title: "Report Status Updated",
-    message: `Your report "${report?.title || "Untitled report"}" was ${status} by observer ${observerName}.`,
-    type: "report",
-    date: new Date().toLocaleString(),
-    read: false,
-  };
-
-  const updatedNotifications = [notification, ...currentNotifications].slice(0, 300);
-
-  localStorage.setItem(
-    "electionSystem",
-    JSON.stringify({
-      ...systemData,
-      notifications: updatedNotifications,
-    })
-  );
-};
-
 function ObserverDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeSection, setActiveSection] = useState("dashboard");
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [reports, setReports] = useState([]);
+  const [elections, setElections] = useState([]);
+  const [activity, setActivity] = useState([]);
 
   const currentUser =
     JSON.parse(localStorage.getItem("currentUser")) ||
     JSON.parse(sessionStorage.getItem("currentUser")) ||
     {};
-
-  const [systemData, setSystemData] = useState(() => getSystemData());
-  const [activity, setActivity] = useState(() => getObserverActivity());
-
-  useEffect(() => {
-    const loadData = () => {
-      setSystemData(getSystemData());
-    };
-
-    loadData();
-
-    const interval = setInterval(loadData, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const observerName = currentUser?.fullName || currentUser?.name || "Observer";
   const observerImage =
@@ -184,49 +113,89 @@ function ObserverDashboard() {
     currentUser?.image ||
     "/default-profile.svg";
 
-  const observerAliases = (() => {
-    const aliases = new Set();
+  const observerAliases = [
+    normalizeText(currentUser?.fullName || currentUser?.name),
+    normalizeText((currentUser?.fullName || currentUser?.name || "").split(" ")[0]),
+    normalizeText(currentUser?.email),
+    normalizeText(currentUser?.id),
+  ].filter(Boolean);
+  const observerAliasesKey = observerAliases.join("|");
 
-    const fullName = normalizeText(currentUser?.fullName || currentUser?.name);
-    const firstName = normalizeText((currentUser?.fullName || "").split(" ")[0]);
-    const email = normalizeText(currentUser?.email);
-    const id = normalizeText(currentUser?.id);
+  useEffect(() => {
+    if (!observerAliasesKey) {
+      return;
+    }
 
-    [fullName, firstName, email, id].forEach((item) => {
-      if (item) aliases.add(item);
-    });
+    const observerAliasesList = observerAliasesKey.split("|");
 
-    return Array.from(aliases);
-  })();
+    let active = true;
 
-  const reports = (systemData.reports || []).filter((report) => {
-    const assignmentCandidates = [
-      report.assignedTo,
-      report.assignedObserver,
-      report.assignedObserverEmail,
-      report.assignedObserverId,
-      report.observerEmail,
-      report.observerId,
-    ];
+    const loadObserverData = async () => {
+      try {
+        const [reportsRes, electionsRes] = await Promise.all([
+          fetch("http://localhost:8080/api/reports/all"),
+          fetch("http://localhost:8080/api/elections/all"),
+        ]);
 
-    return assignmentCandidates.some((candidate) =>
-      matchesObserverAssignment(candidate, observerAliases)
-    );
-  });
+        const [reportsPayload, electionsPayload] = await Promise.all([
+          reportsRes.json(),
+          electionsRes.json(),
+        ]);
 
-  const elections = (systemData.elections || []).filter((election) => {
-    const assignmentCandidates = [
-      election.observers,
-      election.assignedObservers,
-      election.assignedTo,
-      election.observerEmail,
-      election.observerId,
-    ];
+        const allReports = normalizeListResponse(reportsPayload, "reports");
+        const allElections = normalizeListResponse(electionsPayload, "elections");
 
-    return assignmentCandidates.some((candidate) =>
-      matchesObserverAssignment(candidate, observerAliases)
-    );
-  });
+        const assignedReports = allReports.filter((report) => {
+          const assignmentCandidates = [
+            report.assignedTo,
+            report.assignedObserver,
+            report.assignedObserverEmail,
+            report.assignedObserverId,
+            report.observerEmail,
+            report.observerId,
+          ];
+
+          return assignmentCandidates.some((candidate) =>
+            matchesObserverAssignment(candidate, observerAliasesList)
+          );
+        });
+
+        const assignedElections = allElections.filter((election) => {
+          const assignmentCandidates = [
+            election.observers,
+            election.assignedObservers,
+            election.assignedTo,
+            election.observerEmail,
+            election.observerId,
+            election.observer_id,
+            election.assignedObserver,
+            election.observer,
+            election.assigned_observer_id,
+            election.assigned_observer,
+          ];
+
+          return assignmentCandidates.some((candidate) =>
+            matchesObserverAssignment(candidate, observerAliasesList)
+          );
+        });
+
+        if (!active) return;
+
+        setReports(assignedReports);
+        setElections(assignedElections);
+      } catch (err) {
+        console.error("Error fetching observer dashboard data:", err);
+      }
+    };
+
+    void loadObserverData();
+
+    const interval = setInterval(loadObserverData, 10000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [observerAliasesKey]);
 
   const addActivity = (message) => {
     setActivity((previous) => {
@@ -246,84 +215,127 @@ function ObserverDashboard() {
         },
         ...previous,
       ].slice(0, 30);
-
-      localStorage.setItem("observer_activity", JSON.stringify(next));
       return next;
     });
   };
 
-  const persistReportsUpdate = (updater) => {
-    setSystemData((previous) => {
-      const currentReports = Array.isArray(previous.reports) ? previous.reports : [];
-      const updatedReports = updater(currentReports);
-      const nextSystemData = {
-        ...previous,
-        reports: updatedReports,
-      };
+    const refreshObserverData = async () => {
+      try {
+        const [reportsRes, electionsRes] = await Promise.all([
+          fetch("http://localhost:8080/api/reports/all"),
+          fetch("http://localhost:8080/api/elections/all"),
+        ]);
 
-      localStorage.setItem("electionSystem", JSON.stringify(nextSystemData));
-      return nextSystemData;
-    });
-  };
+        const [reportsPayload, electionsPayload] = await Promise.all([
+          reportsRes.json(),
+          electionsRes.json(),
+        ]);
 
-  const updateReportDecision = (id, decision) => {
+        const allReports = normalizeListResponse(reportsPayload, "reports");
+        const allElections = normalizeListResponse(electionsPayload, "elections");
+
+        setReports(
+          allReports.filter((report) => {
+            const assignmentCandidates = [
+              report.assignedTo,
+              report.assignedObserver,
+              report.assignedObserverEmail,
+              report.assignedObserverId,
+              report.observerEmail,
+              report.observerId,
+            ];
+
+            return assignmentCandidates.some((candidate) =>
+              matchesObserverAssignment(candidate, observerAliases)
+            );
+          })
+        );
+
+        setElections(
+          allElections.filter((election) => {
+            const assignmentCandidates = [
+              election.observers,
+              election.assignedObservers,
+              election.assignedTo,
+              election.observerEmail,
+              election.observerId,
+              election.observer_id,
+              election.assignedObserver,
+              election.observer,
+              election.assigned_observer_id,
+              election.assigned_observer,
+            ];
+
+            return assignmentCandidates.some((candidate) =>
+              matchesObserverAssignment(candidate, observerAliases)
+            );
+          })
+        );
+      } catch (err) {
+        console.error("Error refreshing observer dashboard data:", err);
+      }
+    };
+
+    const updateReportDecision = async (id, decision) => {
     const nextStatus = decision === "verified" ? "Resolved" : "Rejected";
-    const targetReport = (systemData.reports || []).find((report) => report.id === id);
+      try {
+        const params = new URLSearchParams({
+          decision,
+          observerName,
+        });
 
-    persistReportsUpdate((currentReports) =>
-      currentReports.map((report) =>
-        report.id === id
-          ? {
-              ...report,
-              status: nextStatus,
-              observerDecision: decision,
-              observerActionBy: observerName,
-              observerActionAt: new Date().toLocaleString(),
-            }
-          : report
-      )
-    );
+        const response = await fetch(`http://localhost:8080/api/reports/${id}/decision?${params.toString()}`, {
+          method: "PUT",
+        });
 
-    addActivity(
-      `Report ${id} updated as ${nextStatus} by ${observerName}.`
-    );
+        if (!response.ok) {
+          throw new Error(`Failed to update report decision (${response.status})`);
+        }
 
-    if (targetReport) {
-      appendCitizenNotification({
-        report: targetReport,
-        observerName,
-        status: nextStatus,
-      });
+        addActivity(`Report ${id} updated as ${nextStatus} by ${observerName}.`);
+        await refreshObserverData();
+      } catch (err) {
+        console.error(err);
     }
   };
 
-  const addNote = (id) => {
-    const note = prompt("Enter note");
-    if (!note) return;
+  const reviewReport = async (id) => {
+    const note = prompt("Enter review note (optional)") || "";
 
-    const targetReport = (systemData.reports || []).find((report) => report.id === id);
-
-    persistReportsUpdate((currentReports) =>
-      currentReports.map((report) =>
-        report.id === id
-          ? {
-              ...report,
-              observerNote: note,
-              observerActionBy: observerName,
-              observerActionAt: new Date().toLocaleString(),
-            }
-          : report
-      )
-    );
-
-    addActivity(`Note added for report ${id}.`);
-
-    if (targetReport) {
-      appendCitizenNotification({
-        report: targetReport,
+    try {
+      const params = new URLSearchParams({
+        decision: "reviewed",
+        note,
+        observerNote: note,
+        comment: note,
         observerName,
-        status: "reviewed",
       });
+
+      const response = await fetch(`http://localhost:8080/api/reports/${id}/decision?${params.toString()}`, {
+        method: "PUT",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to review report (${response.status})`);
+      }
+
+      addActivity(`Report ${id} marked for review by ${observerName}.`);
+      await refreshObserverData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const reviewElection = async (id) => {
+    const note = prompt("Enter election review note (optional)") || "";
+
+    try {
+      addActivity(
+        `Election ${id} reviewed${note ? `: ${note}` : ""} by ${observerName}.`
+      );
+      alert("Election review saved to activity log.");
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -374,30 +386,6 @@ function ObserverDashboard() {
   };
 
   const handleSubmitToAdmin = () => {
-    const submissions = JSON.parse(localStorage.getItem("observer_submissions")) || [];
-
-    const nextId =
-      submissions.length > 0
-        ? Math.max(...submissions.map((entry) => Number(entry.id) || 0)) + 1
-        : 1;
-
-    const payload = {
-      id: nextId,
-      observer: observerName,
-      submittedAt: new Date().toISOString(),
-      summary: {
-        elections: elections.length,
-        reports: reports.length,
-        resolved: verifiedReports,
-        rejected: rejectedReports,
-      },
-    };
-
-    localStorage.setItem(
-      "observer_submissions",
-      JSON.stringify([payload, ...submissions].slice(0, 50))
-    );
-
     addActivity("Observer summary submitted to admin.");
     alert("Summary submitted to admin dashboard.");
   };
@@ -512,7 +500,15 @@ function ObserverDashboard() {
                           </p>
                         </div>
 
-                        <span className={badge.className}>{badge.label}</span>
+                        <div className="observer-action-buttons">
+                          <span className={badge.className}>{badge.label}</span>
+                          <button
+                            className="observer-btn observer-note"
+                            onClick={() => reviewElection(election.id)}
+                          >
+                            Review
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -555,9 +551,9 @@ function ObserverDashboard() {
                         </button>
                         <button
                           className="observer-btn observer-note"
-                          onClick={() => addNote(report.id)}
+                          onClick={() => reviewReport(report.id)}
                         >
-                          Add Note
+                          Review
                         </button>
                       </div>
                     </div>
@@ -663,9 +659,9 @@ function ObserverDashboard() {
                     </button>
                     <button
                       className="observer-btn observer-note"
-                      onClick={() => addNote(report.id)}
+                      onClick={() => reviewReport(report.id)}
                     >
-                      Add Note
+                      Review
                     </button>
                   </div>
                 </div>

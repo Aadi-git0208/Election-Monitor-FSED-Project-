@@ -29,6 +29,22 @@ const getUserImage = (user) => {
   );
 };
 
+const getReportDateKey = (report) => {
+  const rawDate =
+    report?.date ||
+    report?.createdAt ||
+    report?.reportDate ||
+    report?.submittedAt ||
+    report?.timestamp;
+
+  if (!rawDate) return null;
+
+  const parsed = new Date(rawDate);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return parsed.toISOString().split("T")[0];
+};
+
 function AdminDashboard() {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -52,8 +68,29 @@ function AdminDashboard() {
   // 🔥 FETCH FROM BACKEND
   const fetchDashboardData = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/admin/dashboard");
-      const backendData = await res.json();
+      const [dashboardRes, reportsRes] = await Promise.allSettled([
+        fetch("http://localhost:8080/api/admin/dashboard"),
+        fetch("http://localhost:8080/api/reports/all"),
+      ]);
+
+      if (dashboardRes.status !== "fulfilled") {
+        throw new Error("Failed to fetch admin dashboard data");
+      }
+
+      const backendData = await dashboardRes.value.json();
+
+      let reportsData = [];
+
+      if (reportsRes.status === "fulfilled") {
+        const reportsPayload = await reportsRes.value.json();
+        reportsData = Array.isArray(reportsPayload)
+          ? reportsPayload
+          : Array.isArray(reportsPayload?.reports)
+            ? reportsPayload.reports
+            : [];
+      } else if (Array.isArray(backendData?.reportsData)) {
+        reportsData = backendData.reportsData;
+      }
 
       setData((prev) => ({
         ...prev,
@@ -63,7 +100,7 @@ function AdminDashboard() {
         totalAnalysts: backendData.totalAnalysts,
         totalReports: backendData.totalReports,
         totalElections: backendData.totalElections,
-        reportsData: [], // graph future
+        reportsData,
       }));
 
     } catch (err) {
@@ -86,8 +123,10 @@ function AdminDashboard() {
   // 🔥 GRAPH (UI same, data empty for now)
   const reportPerDay =
     data.reportsData?.reduce((acc, report) => {
-      if (!report.date) return acc;
-      acc[report.date] = (acc[report.date] || 0) + 1;
+      const dateKey = getReportDateKey(report);
+      if (!dateKey) return acc;
+
+      acc[dateKey] = (acc[dateKey] || 0) + 1;
       return acc;
     }, {}) || {};
 

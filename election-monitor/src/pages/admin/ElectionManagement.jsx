@@ -4,6 +4,7 @@ import "./ElectionManagement.css";
 function ElectionManagement() {
 
   const [elections, setElections] = useState([]);
+  const [observers, setObservers] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
   const [newElection, setNewElection] = useState({
@@ -11,7 +12,7 @@ function ElectionManagement() {
     startDate: "",
     endDate: "",
     candidates: "",
-    observers: "",
+    observerId: "",
     active: false,
   });
 
@@ -26,13 +27,29 @@ function ElectionManagement() {
     }
   }, []);
 
+  const fetchObservers = useCallback(async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/users/all");
+      const data = await res.json();
+
+      const observerList = (Array.isArray(data) ? data : []).filter(
+        (user) => String(user.role || "").toLowerCase() === "observer" && !user.blocked
+      );
+
+      setObservers(observerList);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   useEffect(() => {
     const kickoff = setTimeout(() => {
       void fetchElections();
+      void fetchObservers();
     }, 0);
 
     return () => clearTimeout(kickoff);
-  }, [fetchElections]);
+  }, [fetchElections, fetchObservers]);
 
   // 🔥 CREATE ELECTION
   const handleCreate = async () => {
@@ -42,18 +59,29 @@ function ElectionManagement() {
     }
 
     try {
-      await fetch("http://localhost:8080/api/elections/create", {
+      const payload = {
+        title: newElection.title,
+        startDate: newElection.startDate,
+        endDate: newElection.endDate,
+        active: false,
+      };
+
+      if (newElection.observerId) {
+        payload.observerId = Number(newElection.observerId);
+      }
+
+      const createRes = await fetch("http://localhost:8080/api/elections/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          title: newElection.title,
-          startDate: newElection.startDate,
-          endDate: newElection.endDate,
-          active: false,
-        }),
+        body: JSON.stringify(payload),
       });
+
+      if (!createRes.ok) {
+        const errorText = await createRes.text();
+        throw new Error(errorText || `Failed to create election (${createRes.status})`);
+      }
 
       setShowModal(false);
       fetchElections();
@@ -63,7 +91,7 @@ function ElectionManagement() {
         startDate: "",
         endDate: "",
         candidates: "",
-        observers: "",
+        observerId: "",
         active: false,
       });
 
@@ -91,6 +119,11 @@ function ElectionManagement() {
 
     fetchElections();
   };
+
+  const observerNameById = observers.reduce((acc, observer) => {
+    acc[String(observer.id)] = observer.fullName || observer.name || `Observer ${observer.id}`;
+    return acc;
+  }, {});
 
   return (
     <div className="election-management">
@@ -130,8 +163,15 @@ function ElectionManagement() {
                 <td>{election.startDate}</td>
                 <td>{election.endDate}</td>
 
-                <td>-</td>
-                <td>-</td>
+                <td>{election.candidates || election.candidateList || "-"}</td>
+                <td>
+                  {
+                    election.observers ||
+                    election.assignedObservers ||
+                    observerNameById[String(election.observerId ?? election.observer_id)] ||
+                    "-"
+                  }
+                </td>
 
                 <td>
                   {election.active ? (
@@ -205,14 +245,20 @@ function ElectionManagement() {
               }
             />
 
-            <input
-              type="text"
-              placeholder="Assign Observers (comma separated)"
-              value={newElection.observers}
+            <label>Assign Observer</label>
+            <select
+              value={newElection.observerId}
               onChange={(e) =>
-                setNewElection({ ...newElection, observers: e.target.value })
+                setNewElection({ ...newElection, observerId: e.target.value })
               }
-            />
+            >
+              <option value="">Select observer</option>
+              {observers.map((observer) => (
+                <option key={observer.id} value={observer.id}>
+                  {observer.fullName || observer.name || observer.email}
+                </option>
+              ))}
+            </select>
 
             <div className="modal-buttons">
               <button className="save-btn" onClick={handleCreate}>

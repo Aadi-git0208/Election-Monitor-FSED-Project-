@@ -27,9 +27,28 @@ public class ElectionService {
         repo.deleteById(id);
     }
 
+    // 🔥 NEW: Assign election to observer
+    public Election assignElection(Long electionId, Long observerId) {
+        Election election = repo.findById(electionId).orElse(null);
+
+        if (election != null) {
+            election.setObserverId(observerId);
+            return repo.save(election);
+        }
+
+        return null;
+    }
+
     // ================= CITIZEN FEATURES =================
 
     public List<Election> getActiveElections() {
-        return repo.findByActiveTrue(); // 🔥 important
+        return repo.findByActiveTrue();
+    }
+
+    // ================= OBSERVER FEATURES =================
+
+    // 🔥 NEW: Get elections for observer
+    public List<Election> getObserverElections(Long observerId) {
+        return repo.findByObserverId(observerId);
     }
 }

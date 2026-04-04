@@ -16,8 +16,13 @@ public class Report {
 
     private String status = "Pending";
 
+    // OLD (for display)
     @Column(name = "assigned_observer")
     private String assignedObserver;
+
+    // NEW (IMPORTANT 🔥)
+    @Column(name = "assigned_observer_id")
+    private Long assignedObserverId;
 
     private String category;
 
@@ -30,9 +35,8 @@ public class Report {
     private String userName;
 
     private String location;
-    private String image;
 
-    private LocalDateTime date = LocalDateTime.now(); // 🔥 auto date
+    private LocalDateTime date = LocalDateTime.now();
 
     @Column(name = "admin_comment")
     private String adminComment;
@@ -48,137 +52,66 @@ public class Report {
 
     // ================= GETTERS & SETTERS =================
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    // 🔥 default status
+    public String getStatus() { return status; }
     public void setStatus(String status) {
-        this.status = (status == null || status.isEmpty())
-                ? "Pending"
-                : status;
+        this.status = (status == null || status.isEmpty()) ? "Pending" : status;
     }
 
-    public String getAssignedObserver() {
-        return assignedObserver;
-    }
-
+    public String getAssignedObserver() { return assignedObserver; }
     public void setAssignedObserver(String assignedObserver) {
         this.assignedObserver = assignedObserver;
     }
 
-    public String getCategory() {
-        return category;
+    public Long getAssignedObserverId() { return assignedObserverId; }
+    public void setAssignedObserverId(Long assignedObserverId) {
+        this.assignedObserverId = assignedObserverId;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public Long getUserId() {
-        return userId;
-    }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    // 🔥 email normalize
+    public String getEmail() { return email; }
     public void setEmail(String email) {
-        this.email = email.toLowerCase();
+        this.email = (email == null) ? "" : email.toLowerCase();
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
+    public String getUserName() { return userName; }
     public void setUserName(String userName) {
-        this.userName = userName;
+        this.userName = (userName == null) ? "Citizen" : userName;
     }
 
-    public String getLocation() {
-        return location;
-    }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
+    public LocalDateTime getDate() { return date; }
+    public void setDate(LocalDateTime date) { this.date = date; }
 
-    public String getImage() {
-        return image;
-    }
+    public String getAdminComment() { return adminComment; }
+    public void setAdminComment(String adminComment) { this.adminComment = adminComment; }
 
-    // 🔥 default image
-    public void setImage(String image) {
-        this.image = (image == null || image.isEmpty())
-                ? "/no-image.png"
-                : image;
-    }
-
-    public LocalDateTime getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
-    public String getAdminComment() {
-        return adminComment;
-    }
-
-    public void setAdminComment(String adminComment) {
-        this.adminComment = adminComment;
-    }
-
-    public String getObserverActionBy() {
-        return observerActionBy;
-    }
-
+    public String getObserverActionBy() { return observerActionBy; }
     public void setObserverActionBy(String observerActionBy) {
         this.observerActionBy = observerActionBy;
     }
 
-    public String getObserverNote() {
-        return observerNote;
-    }
-
+    public String getObserverNote() { return observerNote; }
     public void setObserverNote(String observerNote) {
         this.observerNote = observerNote;
     }
 
-    public LocalDateTime getObserverActionAt() {
-        return observerActionAt;
-    }
-
+    public LocalDateTime getObserverActionAt() { return observerActionAt; }
     public void setObserverActionAt(LocalDateTime observerActionAt) {
         this.observerActionAt = observerActionAt;
     }

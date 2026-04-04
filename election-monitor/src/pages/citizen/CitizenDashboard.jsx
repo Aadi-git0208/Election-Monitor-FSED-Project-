@@ -24,22 +24,27 @@ function CitizenDashboard() {
     {};
 
   useEffect(() => {
-    const loadData = () => {
-      const data =
-        JSON.parse(localStorage.getItem("electionSystem")) || {
-          users: [],
-          elections: [],
-          reports: [],
-          notifications: [],
-        };
-      setSystemData(data);
-    };
+  const loadData = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/system/data");
+      const data = await res.json();
 
-    loadData();
-    const interval = setInterval(loadData, 1000);
-    return () => clearInterval(interval);
-  }, []);
+      setSystemData({
+        users: data.users || [],
+        elections: data.elections || [],
+        reports: data.reports || [],
+        notifications: data.notifications || [],
+      });
 
+    } catch (err) {
+      console.error("Backend error:", err);
+    }
+  };
+
+  loadData();
+  const interval = setInterval(loadData, 3000);
+  return () => clearInterval(interval);
+}, []);
   const activeElections = systemData.elections.filter(
     (e) => e.active === true
   );

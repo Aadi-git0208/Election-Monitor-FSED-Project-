@@ -1,51 +1,27 @@
 import React, { useEffect, useState } from "react";
 import "./LiveElectionTracker.css";
 
-const readStoredJson = (storage, key, fallback) => {
-  const raw = storage.getItem(key);
-
-  if (!raw) {
-    return fallback;
-  }
-
-  try {
-    return JSON.parse(raw);
-  } catch {
-    storage.removeItem(key);
-    return fallback;
-  }
-};
-
-const getSystemData = () => {
-  const parsed = readStoredJson(localStorage, "electionSystem", null);
-
-  if (!parsed || typeof parsed !== "object") {
-    return {
-      users: [],
-      elections: [],
-      reports: [],
-      notifications: [],
-    };
-  }
-
-  return {
-    users: Array.isArray(parsed.users) ? parsed.users : [],
-    elections: Array.isArray(parsed.elections) ? parsed.elections : [],
-    reports: Array.isArray(parsed.reports) ? parsed.reports : [],
-    notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
-  };
-};
-
 function LiveElectionTracker() {
 
   const [activeElections, setActiveElections] = useState([]);
   const [timeLeft, setTimeLeft] = useState({});
 
+  // 🔥 BACKEND DATA FETCH (ONLY CHANGE)
   useEffect(() => {
-    const loadData = () => {
-      const systemData = getSystemData();
-      const elections = Array.isArray(systemData.elections) ? systemData.elections : [];
-      setActiveElections(elections.filter((election) => election.active));
+    const loadData = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/elections/all");
+        const elections = await res.json();
+
+        setActiveElections(
+          Array.isArray(elections)
+            ? elections.filter((election) => election.active)
+            : []
+        );
+
+      } catch (err) {
+        console.error("Backend error:", err);
+      }
     };
 
     loadData();
@@ -53,7 +29,7 @@ function LiveElectionTracker() {
     return () => clearInterval(interval);
   }, []);
 
-  // ⏳ TIMER (same logic)
+  // ⏳ TIMER (UNCHANGED)
   useEffect(() => {
     const timer = setInterval(() => {
       const updatedTimes = {};
@@ -124,6 +100,7 @@ function LiveElectionTracker() {
             ) : (
               <p>No candidates listed</p>
             )}
+
           </div>
 
         </div>
