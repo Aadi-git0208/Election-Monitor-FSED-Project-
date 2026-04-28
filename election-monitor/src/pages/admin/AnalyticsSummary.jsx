@@ -13,6 +13,7 @@ import {
   Legend,
 } from "recharts";
 import "./AnalyticsSummary.css";
+import API from "../../api/config";
 
 const STATUS_COLORS = {
   Pending: "#f59e0b",
@@ -38,9 +39,9 @@ function AnalyticsSummary() {
   const fetchData = useCallback(async () => {
     try {
       const [r, u, e] = await Promise.all([
-        fetch("https://your-backend.up.railway.app/api/reports/all"),
-        fetch("https://your-backend.up.railway.app/api/users/all"),
-        fetch("https://your-backend.up.railway.app/api/elections/all"),
+        fetch(API + "/api/reports/all"),
+        fetch(API + "/api/users/all"),
+        fetch(API + "/api/elections/all"),
       ]);
 
       const reportsData = await r.json();

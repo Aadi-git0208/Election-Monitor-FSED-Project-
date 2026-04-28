@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
+import API from "../../api/config";
 
 const readStoredJson = (storage, key, fallback) => {
   const raw = storage.getItem(key);
@@ -94,7 +95,7 @@ const handleSubmit = async (e) => {
   e.preventDefault();
 
   try {
-    const res = await fetch("https://your-backend.up.railway.app/api/users/login", {
+    const res = await fetch(API + "/api/users/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

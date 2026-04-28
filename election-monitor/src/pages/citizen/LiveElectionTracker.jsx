@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./LiveElectionTracker.css";
+import API from "../../api/config";
 
 function LiveElectionTracker() {
 
@@ -10,7 +11,7 @@ function LiveElectionTracker() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await fetch("https://your-backend.up.railway.app/api/elections/all");
+        const res = await fetch(`${API}/api/elections/all`);
         const elections = await res.json();
 
         setActiveElections(

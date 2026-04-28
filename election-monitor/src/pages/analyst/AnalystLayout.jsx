@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
 import "./AnalystDashboard.css";
 import ProfileUpdateModal from "../../components/common/ProfileUpdateModal";
-
+import API from "../../api/config";
 const AnalystLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);

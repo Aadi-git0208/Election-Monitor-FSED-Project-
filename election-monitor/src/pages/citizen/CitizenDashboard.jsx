@@ -6,6 +6,7 @@ import MyReports from "./MyReports";
 import CivicDiscussionForum from "./CivicDiscussionForum";
 import Notifications from "./Notification";
 import ProfileUpdateModal from "../../components/common/ProfileUpdateModal";
+import API from "../../api/config";
 
 function CitizenDashboard() {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -26,7 +27,7 @@ function CitizenDashboard() {
   useEffect(() => {
   const loadData = async () => {
     try {
-      const res = await fetch("https://your-backend.up.railway.app/api/system/data");
+      const res = await fetch(`${API}/api/system/data`);
       const data = await res.json();
 
       setSystemData({

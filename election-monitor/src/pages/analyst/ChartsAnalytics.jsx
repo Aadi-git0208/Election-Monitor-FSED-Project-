@@ -12,6 +12,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import API from "../../api/config";
 
 const normalizeListResponse = (payload, listKey) => {
   if (Array.isArray(payload)) {
@@ -47,7 +48,7 @@ const ChartsAnalytics = () => {
 
   const fetchChartsData = useCallback(async () => {
     try {
-      const reportsRes = await fetch("https://your-backend.up.railway.app/api/reports/all");
+      const reportsRes = await fetch(`${API}/api/reports/all`);
 
       if (!reportsRes.ok) {
         throw new Error("Failed to fetch reports");

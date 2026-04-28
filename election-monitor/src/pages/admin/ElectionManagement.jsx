@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from "react";
 import "./ElectionManagement.css";
+import API from "../../api/config";
 
 function ElectionManagement() {
 
@@ -19,7 +20,7 @@ function ElectionManagement() {
   // 🔥 FETCH ELECTIONS
   const fetchElections = useCallback(async () => {
     try {
-      const res = await fetch("https://your-backend.up.railway.app/api/elections/all");
+      const res = await fetch(API + "/api/elections/all");
       const data = await res.json();
       setElections(data);
     } catch (err) {
@@ -29,7 +30,7 @@ function ElectionManagement() {
 
   const fetchObservers = useCallback(async () => {
     try {
-      const res = await fetch("https://your-backend.up.railway.app/api/users/all");
+      const res = await fetch(API + "/api/users/all");
       const data = await res.json();
 
       const observerList = (Array.isArray(data) ? data : []).filter(
@@ -70,7 +71,7 @@ function ElectionManagement() {
         payload.observerId = Number(newElection.observerId);
       }
 
-      const createRes = await fetch("https://your-backend.up.railway.app/api/elections/create", {
+      const createRes = await fetch(API + "/api/elections/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -102,7 +103,7 @@ function ElectionManagement() {
 
   // 🔥 ACTIVATE / DEACTIVATE
   const toggleActive = async (id) => {
-    await fetch(`https://your-backend.up.railway.app/api/elections/toggle/${id}`, {
+    await fetch(`${API}/api/elections/toggle/${id}`, {
       method: "PUT",
     });
 
@@ -113,7 +114,7 @@ function ElectionManagement() {
   const deleteElection = async (id) => {
     if (!window.confirm("Delete this election?")) return;
 
-    await fetch(`https://your-backend.up.railway.app/api/elections/${id}`, {
+    await fetch(`${API}/api/elections/${id}`, {
       method: "DELETE",
     });
 

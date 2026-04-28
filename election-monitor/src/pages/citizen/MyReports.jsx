@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import "./MyReports.css";
-
+import API from "../../api/config";
 function MyReports() {
 
   const [reports, setReports] = useState([]);
@@ -15,7 +15,7 @@ function MyReports() {
   // 🔥 FETCH FROM BACKEND (ONLY CHANGE)
   const fetchReports = useCallback(async () => {
     try {
-      const res = await fetch("https://your-backend.up.railway.app/api/reports/all");
+      const res = await fetch(`${API}/api/reports/all`);
       const data = await res.json();
 
       const filtered = Array.isArray(data)

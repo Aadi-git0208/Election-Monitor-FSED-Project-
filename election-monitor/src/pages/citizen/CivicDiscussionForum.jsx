@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import "./CivicDiscussionForum.css";
+import API from "../../api/config";
 
 function CivicForum() {
 
@@ -13,7 +14,7 @@ function CivicForum() {
 
   const fetchPosts = useCallback(async () => {
     try {
-      const res = await fetch("https://your-backend.up.railway.app/api/forum/all");
+      const res = await fetch(`${API}/api/forum/all`);
       const data = await res.json();
       setPosts(data);
     } catch (err) {
@@ -39,7 +40,7 @@ function CivicForum() {
       return;
     }
 
-    await fetch("https://your-backend.up.railway.app/api/forum/create", {
+    await fetch(`${API}/api/forum/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

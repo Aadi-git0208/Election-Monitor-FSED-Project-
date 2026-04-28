@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./ExportReports.css";
+import API from "../../api/config";
 
 const normalizeListResponse = (payload, listKey) => {
   if (Array.isArray(payload)) {
@@ -29,8 +30,8 @@ const ExportReports = () => {
   const fetchExportData = useCallback(async () => {
     try {
       const [reportsRes, electionsRes] = await Promise.allSettled([
-        fetch("https://your-backend.up.railway.app/api/reports/all"),
-        fetch("https://your-backend.up.railway.app/api/elections/all"),
+        fetch(`${API}/api/reports/all`),
+        fetch(`${API}/api/elections/all`),
       ]);
 
       let reports = [];
@@ -167,7 +168,7 @@ const ExportReports = () => {
       };
 
       const response = await fetch(
-        "https://your-backend.up.railway.app/api/analyst/submissions",
+        `${API}/api/analyst/submissions`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

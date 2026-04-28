@@ -18,6 +18,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import API from "../../api/config";
 
 const getUserImage = (user) => {
   return (
@@ -69,8 +70,8 @@ function AdminDashboard() {
   const fetchDashboardData = useCallback(async () => {
     try {
       const [dashboardRes, reportsRes] = await Promise.allSettled([
-        fetch("https://your-backend.up.railway.app/api/admin/dashboard"),
-        fetch("https://your-backend.up.railway.app/api/reports/all"),
+        fetch(API + "/api/admin/dashboard"),
+        fetch(API + "/api/reports/all"),
       ]);
 
       if (dashboardRes.status !== "fulfilled") {

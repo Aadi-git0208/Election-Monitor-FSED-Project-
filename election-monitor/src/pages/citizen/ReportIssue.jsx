@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./ReportIssue.css";
-
+import API from "../../api/config";
 function ReportIssue() {
 
   const currentUser =
@@ -62,7 +62,7 @@ function ReportIssue() {
   location
 };
 
-      const res = await fetch("https://your-backend.up.railway.app/api/reports/create", {
+      const res = await fetch(`${API}/api/reports/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from "react";
 import "./ReportManagement.css";
+import API from "../../api/config";
 
 function ReportManagement() {
 
@@ -10,7 +11,7 @@ function ReportManagement() {
   // 🔥 FETCH REPORTS
   const fetchReports = useCallback(async () => {
     try {
-      const res = await fetch("https://your-backend.up.railway.app/api/reports/all");
+      const res = await fetch(API + "/api/reports/all");
       const data = await res.json();
       setReports(data);
     } catch (err) {
@@ -21,7 +22,7 @@ function ReportManagement() {
   // 🔥 FETCH OBSERVERS
   const fetchObservers = useCallback(async () => {
     try {
-      const res = await fetch("https://your-backend.up.railway.app/api/users/all");
+      const res = await fetch(API + "/api/users/all");
       const data = await res.json();
 
       const observerList = data.filter(
@@ -51,7 +52,7 @@ function ReportManagement() {
     if (!observerName) return;
 
     await fetch(
-      `https://your-backend.up.railway.app/api/reports/assign/${id}?observer=${observerName}`,
+      `${API}/api/reports/assign/${id}?observer=${observerName}`,
       {
         method: "PUT",
       }
@@ -65,7 +66,7 @@ function ReportManagement() {
     if (!comment) return;
 
     await fetch(
-      `https://your-backend.up.railway.app/api/reports/comment/${id}?comment=${comment}`,
+      `${API}/api/reports/comment/${id}?comment=${comment}`,
       {
         method: "PUT",
       }

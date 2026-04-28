@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from "react";
 import "./UserManagement.css";
+import API from "../../api/config";
 
 const getUserImage = (user) => {
   return (
@@ -29,7 +30,7 @@ function UserManagement({ onUsersUpdated }) {
   // 🔥 FETCH USERS FROM BACKEND
   const fetchUsers = useCallback(async () => {
     try {
-      const res = await fetch("https://your-backend.up.railway.app/api/users/all");
+      const res = await fetch(API + "/api/users/all");
       const data = await res.json();
       setUsers(data);
     } catch (err) {
@@ -69,7 +70,7 @@ function UserManagement({ onUsersUpdated }) {
     }
 
     try {
-      await fetch("https://your-backend.up.railway.app/api/users/register", {
+      await fetch(API + "/api/users/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -102,7 +103,7 @@ function UserManagement({ onUsersUpdated }) {
   const deleteUser = async (id) => {
     if (!window.confirm("Delete this user?")) return;
 
-    await fetch(`https://your-backend.up.railway.app/api/users/${id}`, {
+    await fetch(`${API}/api/users/${id}`, {
       method: "DELETE",
     });
 
@@ -111,7 +112,7 @@ function UserManagement({ onUsersUpdated }) {
 
   // 🔥 BLOCK / UNBLOCK
   const toggleBlock = async (id) => {
-    await fetch(`https://your-backend.up.railway.app/api/users/block/${id}`, {
+    await fetch(`${API}/api/users/block/${id}`, {
       method: "PUT",
     });
 
@@ -121,7 +122,7 @@ function UserManagement({ onUsersUpdated }) {
   // 🔥 CHANGE ROLE
   const changeRole = async (id, role) => {
     await fetch(
-      `https://your-backend.up.railway.app/api/users/role/${id}?role=${role}`,
+      `${API}/api/users/role/${id}?role=${role}`,
       {
         method: "PUT",
       }
