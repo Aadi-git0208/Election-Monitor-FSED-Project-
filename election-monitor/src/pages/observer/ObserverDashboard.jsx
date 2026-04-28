@@ -133,8 +133,8 @@ function ObserverDashboard() {
     const loadObserverData = async () => {
       try {
         const [reportsRes, electionsRes] = await Promise.all([
-          fetch("http://localhost:8080/api/reports/all"),
-          fetch("http://localhost:8080/api/elections/all"),
+          fetch("https://your-backend.up.railway.app/api/reports/all"),
+          fetch("https://your-backend.up.railway.app/api/elections/all"),
         ]);
 
         const [reportsPayload, electionsPayload] = await Promise.all([
@@ -222,8 +222,8 @@ function ObserverDashboard() {
     const refreshObserverData = async () => {
       try {
         const [reportsRes, electionsRes] = await Promise.all([
-          fetch("http://localhost:8080/api/reports/all"),
-          fetch("http://localhost:8080/api/elections/all"),
+          fetch("https://your-backend.up.railway.app/api/reports/all"),
+          fetch("https://your-backend.up.railway.app/api/elections/all"),
         ]);
 
         const [reportsPayload, electionsPayload] = await Promise.all([
@@ -284,7 +284,7 @@ function ObserverDashboard() {
           observerName,
         });
 
-        const response = await fetch(`http://localhost:8080/api/reports/${id}/decision?${params.toString()}`, {
+        const response = await fetch(`https://your-backend.up.railway.app/api/reports/${id}/decision?${params.toString()}`, {
           method: "PUT",
         });
 
@@ -311,7 +311,7 @@ function ObserverDashboard() {
         observerName,
       });
 
-      const response = await fetch(`http://localhost:8080/api/reports/${id}/decision?${params.toString()}`, {
+      const response = await fetch(`https://your-backend.up.railway.app/api/reports/${id}/decision?${params.toString()}`, {
         method: "PUT",
       });
 

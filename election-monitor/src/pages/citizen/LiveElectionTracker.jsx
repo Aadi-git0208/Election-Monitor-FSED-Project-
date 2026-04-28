@@ -10,7 +10,7 @@ function LiveElectionTracker() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/elections/all");
+        const res = await fetch("https://your-backend.up.railway.app/api/elections/all");
         const elections = await res.json();
 
         setActiveElections(

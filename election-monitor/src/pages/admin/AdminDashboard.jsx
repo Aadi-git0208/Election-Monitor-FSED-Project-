@@ -69,8 +69,8 @@ function AdminDashboard() {
   const fetchDashboardData = useCallback(async () => {
     try {
       const [dashboardRes, reportsRes] = await Promise.allSettled([
-        fetch("http://localhost:8080/api/admin/dashboard"),
-        fetch("http://localhost:8080/api/reports/all"),
+        fetch("https://your-backend.up.railway.app/api/admin/dashboard"),
+        fetch("https://your-backend.up.railway.app/api/reports/all"),
       ]);
 
       if (dashboardRes.status !== "fulfilled") {

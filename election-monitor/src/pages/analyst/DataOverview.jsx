@@ -47,8 +47,8 @@ const DataOverview = () => {
   const fetchOverviewData = useCallback(async () => {
     try {
       const [reportsRes, electionsRes] = await Promise.allSettled([
-        fetch("http://localhost:8080/api/reports/all"),
-        fetch("http://localhost:8080/api/elections/all"),
+        fetch("https://your-backend.up.railway.app/api/reports/all"),
+        fetch("https://your-backend.up.railway.app/api/elections/all"),
       ]);
 
       let reports = [];

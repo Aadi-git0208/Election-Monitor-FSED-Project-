@@ -38,9 +38,9 @@ function AnalyticsSummary() {
   const fetchData = useCallback(async () => {
     try {
       const [r, u, e] = await Promise.all([
-        fetch("http://localhost:8080/api/reports/all"),
-        fetch("http://localhost:8080/api/users/all"),
-        fetch("http://localhost:8080/api/elections/all"),
+        fetch("https://your-backend.up.railway.app/api/reports/all"),
+        fetch("https://your-backend.up.railway.app/api/users/all"),
+        fetch("https://your-backend.up.railway.app/api/elections/all"),
       ]);
 
       const reportsData = await r.json();

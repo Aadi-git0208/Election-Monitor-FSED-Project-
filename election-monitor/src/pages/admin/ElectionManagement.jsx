@@ -19,7 +19,7 @@ function ElectionManagement() {
   // 🔥 FETCH ELECTIONS
   const fetchElections = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/elections/all");
+      const res = await fetch("https://your-backend.up.railway.app/api/elections/all");
       const data = await res.json();
       setElections(data);
     } catch (err) {
@@ -29,7 +29,7 @@ function ElectionManagement() {
 
   const fetchObservers = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/users/all");
+      const res = await fetch("https://your-backend.up.railway.app/api/users/all");
       const data = await res.json();
 
       const observerList = (Array.isArray(data) ? data : []).filter(
@@ -70,7 +70,7 @@ function ElectionManagement() {
         payload.observerId = Number(newElection.observerId);
       }
 
-      const createRes = await fetch("http://localhost:8080/api/elections/create", {
+      const createRes = await fetch("https://your-backend.up.railway.app/api/elections/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -102,7 +102,7 @@ function ElectionManagement() {
 
   // 🔥 ACTIVATE / DEACTIVATE
   const toggleActive = async (id) => {
-    await fetch(`http://localhost:8080/api/elections/toggle/${id}`, {
+    await fetch(`https://your-backend.up.railway.app/api/elections/toggle/${id}`, {
       method: "PUT",
     });
 
@@ -113,7 +113,7 @@ function ElectionManagement() {
   const deleteElection = async (id) => {
     if (!window.confirm("Delete this election?")) return;
 
-    await fetch(`http://localhost:8080/api/elections/${id}`, {
+    await fetch(`https://your-backend.up.railway.app/api/elections/${id}`, {
       method: "DELETE",
     });
 

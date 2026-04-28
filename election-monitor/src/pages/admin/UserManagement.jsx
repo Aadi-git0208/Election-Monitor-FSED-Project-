@@ -29,7 +29,7 @@ function UserManagement({ onUsersUpdated }) {
   // 🔥 FETCH USERS FROM BACKEND
   const fetchUsers = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/users/all");
+      const res = await fetch("https://your-backend.up.railway.app/api/users/all");
       const data = await res.json();
       setUsers(data);
     } catch (err) {
@@ -69,7 +69,7 @@ function UserManagement({ onUsersUpdated }) {
     }
 
     try {
-      await fetch("http://localhost:8080/api/users/register", {
+      await fetch("https://your-backend.up.railway.app/api/users/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -102,7 +102,7 @@ function UserManagement({ onUsersUpdated }) {
   const deleteUser = async (id) => {
     if (!window.confirm("Delete this user?")) return;
 
-    await fetch(`http://localhost:8080/api/users/${id}`, {
+    await fetch(`https://your-backend.up.railway.app/api/users/${id}`, {
       method: "DELETE",
     });
 
@@ -111,7 +111,7 @@ function UserManagement({ onUsersUpdated }) {
 
   // 🔥 BLOCK / UNBLOCK
   const toggleBlock = async (id) => {
-    await fetch(`http://localhost:8080/api/users/block/${id}`, {
+    await fetch(`https://your-backend.up.railway.app/api/users/block/${id}`, {
       method: "PUT",
     });
 
@@ -121,7 +121,7 @@ function UserManagement({ onUsersUpdated }) {
   // 🔥 CHANGE ROLE
   const changeRole = async (id, role) => {
     await fetch(
-      `http://localhost:8080/api/users/role/${id}?role=${role}`,
+      `https://your-backend.up.railway.app/api/users/role/${id}?role=${role}`,
       {
         method: "PUT",
       }

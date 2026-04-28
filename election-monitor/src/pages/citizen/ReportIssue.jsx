@@ -62,7 +62,7 @@ function ReportIssue() {
   location
 };
 
-      const res = await fetch("http://localhost:8080/api/reports/create", {
+      const res = await fetch("https://your-backend.up.railway.app/api/reports/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

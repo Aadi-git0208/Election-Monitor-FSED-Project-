@@ -15,7 +15,7 @@ function MyReports() {
   // 🔥 FETCH FROM BACKEND (ONLY CHANGE)
   const fetchReports = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/reports/all");
+      const res = await fetch("https://your-backend.up.railway.app/api/reports/all");
       const data = await res.json();
 
       const filtered = Array.isArray(data)

@@ -10,7 +10,7 @@ function ReportManagement() {
   // 🔥 FETCH REPORTS
   const fetchReports = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/reports/all");
+      const res = await fetch("https://your-backend.up.railway.app/api/reports/all");
       const data = await res.json();
       setReports(data);
     } catch (err) {
@@ -21,7 +21,7 @@ function ReportManagement() {
   // 🔥 FETCH OBSERVERS
   const fetchObservers = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/users/all");
+      const res = await fetch("https://your-backend.up.railway.app/api/users/all");
       const data = await res.json();
 
       const observerList = data.filter(
@@ -51,7 +51,7 @@ function ReportManagement() {
     if (!observerName) return;
 
     await fetch(
-      `http://localhost:8080/api/reports/assign/${id}?observer=${observerName}`,
+      `https://your-backend.up.railway.app/api/reports/assign/${id}?observer=${observerName}`,
       {
         method: "PUT",
       }
@@ -65,7 +65,7 @@ function ReportManagement() {
     if (!comment) return;
 
     await fetch(
-      `http://localhost:8080/api/reports/comment/${id}?comment=${comment}`,
+      `https://your-backend.up.railway.app/api/reports/comment/${id}?comment=${comment}`,
       {
         method: "PUT",
       }

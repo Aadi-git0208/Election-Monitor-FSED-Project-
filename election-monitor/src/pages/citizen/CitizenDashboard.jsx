@@ -26,7 +26,7 @@ function CitizenDashboard() {
   useEffect(() => {
   const loadData = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/system/data");
+      const res = await fetch("https://your-backend.up.railway.app/api/system/data");
       const data = await res.json();
 
       setSystemData({

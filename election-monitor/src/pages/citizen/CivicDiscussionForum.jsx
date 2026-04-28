@@ -13,7 +13,7 @@ function CivicForum() {
 
   const fetchPosts = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/forum/all");
+      const res = await fetch("https://your-backend.up.railway.app/api/forum/all");
       const data = await res.json();
       setPosts(data);
     } catch (err) {
@@ -39,7 +39,7 @@ function CivicForum() {
       return;
     }
 
-    await fetch("http://localhost:8080/api/forum/create", {
+    await fetch("https://your-backend.up.railway.app/api/forum/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -57,7 +57,7 @@ function CivicForum() {
 
   
   const handleLike = async (postId) => {
-    await fetch(`http://localhost:8080/api/forum/like/${postId}`, {
+    await fetch(`https://your-backend.up.railway.app/api/forum/like/${postId}`, {
       method: "PUT",
     });
 
@@ -69,7 +69,7 @@ function CivicForum() {
     if (!commentText) return;
 
     await fetch(
-      `http://localhost:8080/api/forum/comment/${postId}?text=${commentText}&user=${currentUser?.fullName}`,
+      `https://your-backend.up.railway.app/api/forum/comment/${postId}?text=${commentText}&user=${currentUser?.fullName}`,
       {
         method: "POST",
       }
